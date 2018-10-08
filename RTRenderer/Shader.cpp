@@ -4,6 +4,7 @@ Shader::Shader()
 {
 	shaderID = 0;
 	uniformModel = 0;
+	uniformView = 0;
 	uniformProjection = 0;
 }
 
@@ -20,6 +21,7 @@ bool Shader::CreateFromString(const char* vertexCode, const char* fragmentCode) 
 	if (shaderID) {
 		// Setup the model and projection matrices
 		uniformModel = glGetUniformLocation(shaderID, "model");
+		uniformView = glGetUniformLocation(shaderID, "view");
 		uniformProjection = glGetUniformLocation(shaderID, "projection");
 	}
 
@@ -40,8 +42,6 @@ bool Shader::CreateFromFiles(const char* vertexFile, const char* fragmentFile) {
 	const char* vertexCode = vertexString.c_str();
 	const char* fragmentCode = fragmentString.c_str();
 
-	printf("Vertex:\n'%s'", vertexString);
-
 	return CreateFromString(vertexCode, fragmentCode);
 }
 
@@ -59,7 +59,6 @@ std::string Shader::ReadFile(const char* file) {
 		std::getline(fileStream, line);
 		code.append(line + "\n");
 	}
-	printf("End of file");
 	fileStream.close();
 
 	return code;
@@ -67,6 +66,10 @@ std::string Shader::ReadFile(const char* file) {
 
 GLuint Shader::GetProjectionLocation() {
 	return uniformProjection;
+}
+
+GLuint Shader::GetViewLocation() {
+	return uniformView;
 }
 
 GLuint Shader::GetModelLocation() {
@@ -85,6 +88,7 @@ void Shader::ClearShader() {
 	ShaderCompiler::ClearShader(&shaderID);
 
 	uniformModel = 0;
+	uniformView = 0;
 	uniformProjection = 0;
 }
 

@@ -18,6 +18,8 @@ private:
 	GLuint shaderID;
 	// Projection matrix
 	GLuint uniformProjection;
+	// View matrix
+	GLuint uniformView;
 	// Model matrix
 	GLuint uniformModel;
 
@@ -33,6 +35,8 @@ public:
 	std::string ReadFile(const char* file);
 	// Getter for uniformProjection
 	GLuint GetProjectionLocation();
+	// Getter for uniformView
+	GLuint GetViewLocation();
 	// Getter for uniformModel
 	GLuint GetModelLocation();
 

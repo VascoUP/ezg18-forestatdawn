@@ -1,9 +1,12 @@
 #pragma once
 
 #include <stdio.h>
+#include <algorithm>
 
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
+
+#include "Input.h"
 
 class GLWindow
 {
@@ -14,7 +17,6 @@ private:
 	GLint height;
 	GLint bufferWidth;
 	GLint bufferHeight;
-
 public:
 	GLWindow();
 	GLWindow(GLint windowWidth, GLint windowHeight);

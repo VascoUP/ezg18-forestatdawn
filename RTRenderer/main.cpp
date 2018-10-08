@@ -64,13 +64,19 @@ int main() {
 	CreateObjects();
 	CreateShaders();
 
-	GLuint uniformProjection = 0, uniformModel = 0;
+	GLuint uniformProjection = 0, uniformView = 0, uniformModel = 0;
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)glWindow->GetBufferWidht() / (GLfloat)glWindow->GetBufferHeight(), 0.1f, 100.0f);
+	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	float rot = 0;
+	float deltaRot = 0.002f;
 
 	// Loop until window closed
 	while (!glWindow->GetShouldClose()) {
 		// Get + Handle user input events
 		glfwPollEvents();
+
+		rot += deltaRot;
 
 		// Clear Window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -78,22 +84,27 @@ int main() {
 
 		shaderList[0].UseShader();
 		uniformModel = shaderList[0].GetModelLocation(); 
+		uniformView = shaderList[0].GetViewLocation();
 		uniformProjection = shaderList[0].GetProjectionLocation();
 
 		glm::mat4 model;
-		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -2.5f));
+		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 2.5f));
+		model = glm::rotate(model, rot, glm::vec3(0, 1, 0));
 		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
 
 		meshList[0]->RenderMesh();
 
 		model = glm::mat4();
-		model = glm::translate(model, glm::vec3(1.0f, 0.0f, -2.5f));
+		model = glm::translate(model, glm::vec3(1.0f, 0.0f, 2.5f));
+		model = glm::rotate(model, rot, glm::vec3(0, 1, 0));
 		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
 
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
 
 		meshList[1]->RenderMesh();

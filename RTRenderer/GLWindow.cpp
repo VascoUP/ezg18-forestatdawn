@@ -41,6 +41,10 @@ int GLWindow::Initialize() {
 	// Set context for glfw to use
 	glfwMakeContextCurrent(mainWindow);
 
+	// Set input interroption callbacks
+	Input::Initialize(mainWindow);
+	glfwSetInputMode(mainWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	// Allow modern extension features
 	glewExperimental = GL_TRUE;
 
@@ -55,6 +59,9 @@ int GLWindow::Initialize() {
 
 	// Setup viewport
 	glViewport(0, 0, bufferWidth, bufferHeight);
+
+	// Define the user of main window
+	glfwSetWindowUserPointer(mainWindow, this);
 }
 
 GLfloat GLWindow::GetBufferWidht() {

@@ -46,11 +46,9 @@ void Input::HandleKeys(GLFWwindow *window, int key, int code, int action, int mo
 	if (key >= 0 && key < 1024) {
 		if (action == GLFW_PRESS) {
 			keys[key] = true;
-			printf("Pressed:%d\n", key);
 		}
 		else if (action == GLFW_RELEASE) {
 			keys[key] = false;
-			printf("Released:%d\n", key);
 		}
 	}
 }
@@ -64,7 +62,7 @@ void Input::HandleMouse(GLFWwindow *window, double xPosition, double yPosition) 
 	}
 
 	deltaX = xPosition - previousX;
-	deltaY = previousX - yPosition;
+	deltaY = previousY - yPosition;
 
 	previousX = xPosition;
 	previousY = yPosition;

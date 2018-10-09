@@ -1,5 +1,7 @@
 #include "SceneObject.h"
 
+int SceneObject::NEXT_ID = 1;
+
 SceneObject::SceneObject(Transform* transform)
 {
 	this->transform = transform;
@@ -13,10 +15,18 @@ void SceneObject::SetUp() {
 }
 
 void SceneObject::Update() {
+	// Skip Update if the object is not active
+	if (!active)
+		return;
+
 	for (std::vector<Updatable*>::iterator it = updatables.begin(); it != updatables.end(); it++)
 	{
 		(*it)->Update();
 	}
+}
+
+void SceneObject::SetActive(bool active) {
+	this->active = active;
 }
 
 void SceneObject::AddUpdatable(Updatable* updatable) {

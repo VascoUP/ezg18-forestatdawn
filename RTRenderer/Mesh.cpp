@@ -1,12 +1,13 @@
 #include "Mesh.h"
 
-Mesh::Mesh()
+Mesh::Mesh() : Updatable(), Renderable()
 {
 	VAO = 0;
 	VBO = 0;
 	EBO = 0;
 	indexCount = 0;
 }
+
 
 void Mesh::CreateMesh(GLfloat *vertices, unsigned int *indices, unsigned int numOfVertices, unsigned int numOfIndices) {
 	indexCount = numOfIndices;
@@ -33,7 +34,7 @@ void Mesh::CreateMesh(GLfloat *vertices, unsigned int *indices, unsigned int num
 	glBindVertexArray(0);
 }
 
-void Mesh::RenderMesh() {
+void Mesh::Render() {
 	// Make sure that there is a mesh
 	if (indexCount == 0)
 		return;

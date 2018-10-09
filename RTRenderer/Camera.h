@@ -5,35 +5,33 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 
-#include "Updatable.h"
+#include "SceneObject.h"
+#include "ObjectBehavior.h"
 #include "Time.h"
 #include "Input.h"
 
-class Camera: public Updatable
+class Camera: public ObjectBehavior
 {
 private:
 	static Camera* camera;
-	Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch, GLfloat moveSpeed, GLfloat turnSpeed);
+	Camera(const SceneObject* object, glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch);
 
+	glm::vec3 _worldUp;
+public:
 	glm::vec3 position;
 	glm::vec3 front;
 	glm::vec3 right;
 	glm::vec3 up;
-	glm::vec3 worldUp;
 
 	GLfloat yaw;
 	GLfloat pitch;
 
-	GLfloat moveSpeed;
-	GLfloat turnSpeed;
-public:
-	static Camera* CreateInstance(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch, GLfloat moveSpeed, GLfloat turnSpeed);
+	static Camera* CreateInstance(const SceneObject* object, glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch);
 	static Camera* GetInstance();
 
 	glm::mat4 CalculateViewMatrix();
+
 	void SetUp();
-	void KeyControl();
-	void MouseControl();
 	void Update();
 
 	~Camera();

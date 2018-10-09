@@ -3,6 +3,6 @@
 class Updatable
 {
 public:
-	void SetUp() {}
-	void Update() {}
+	virtual void SetUp();
+	virtual void Update();
 };

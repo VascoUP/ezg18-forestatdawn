@@ -16,6 +16,7 @@
 #include "Mesh.h"
 #include "Shader.h"
 #include "Camera.h"
+#include "CameraController.h"
 
 const float toRadians = 3.14159265359f / 180.0f;
 
@@ -71,7 +72,8 @@ int main() {
 	CreateShaders();
 
 	SceneObject object(new Transform());
-	object.AddUpdatable(Camera::CreateInstance(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.0f, 0, 5.0f, 1.0f));
+	object.AddUpdatable(Camera::CreateInstance(&object, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.0f, 0));
+	object.AddUpdatable(new CameraController(&object, Camera::GetInstance(), 5.0f, 1.0f));
 
 	GLuint uniformProjection = 0, uniformView = 0, uniformModel = 0;
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)glWindow->GetBufferWidht() / (GLfloat)glWindow->GetBufferHeight(), 0.1f, 100.0f);
@@ -94,8 +96,9 @@ int main() {
 
 		rot += deltaRot;
 
-		Camera::GetInstance()->KeyControl();
-		Camera::GetInstance()->MouseControl();
+		object.Update();
+
+		Camera::GetInstance()->Update();
 
 		// Clear Window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -115,7 +118,7 @@ int main() {
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->CalculateViewMatrix()));
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
 
-		meshList[0]->RenderMesh();
+		meshList[0]->Render();
 
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(1.0f, 0.0f, -2.5f));
@@ -126,7 +129,7 @@ int main() {
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->CalculateViewMatrix()));
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
 
-		meshList[1]->RenderMesh();
+		meshList[1]->Render();
 
 		glUseProgram(0);
 

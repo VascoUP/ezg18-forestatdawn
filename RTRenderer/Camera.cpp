@@ -7,8 +7,8 @@
 */
 Camera* Camera::camera = 0;
 
-Camera* Camera::CreateInstance(const SceneObject* object, glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch) {
-	camera = new Camera(object, position, up, yaw, pitch);
+Camera* Camera::CreateInstance(Transform* object, GLWindow* window) {
+	camera = new Camera(object, window);
 	return camera;
 }
 
@@ -16,35 +16,22 @@ Camera* Camera::GetInstance() {
 	return camera;
 }
 
-
-Camera::Camera(const SceneObject* object, glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch) :
+Camera::Camera(Transform* object, GLWindow* window) :
 	ObjectBehavior(object)
 {
-	this->position = position;
-	this->_worldUp = up;
-	this->yaw = yaw;
-	this->pitch = pitch;
-	this->front = glm::vec3(0.0f, 0.0f, -1.0f);
-	
-	Update();
+	projectionMatrix = glm::perspective(45.0f, (GLfloat)window->GetBufferWidht() / (GLfloat)window->GetBufferHeight(), 0.1f, 100.0f);
 }
 
-void Camera::SetUp() {
+void Camera::SetUp() {}
 
-}
+void Camera::Update() {}
 
 glm::mat4 Camera::CalculateViewMatrix() {
-	return glm::lookAt(position, position + front, up);
+	return glm::lookAt(transform->GetPosition(), transform->GetPosition() + transform->GetFront(), transform->GetUp());
 }
 
-void Camera::Update() {
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front = glm::normalize(front);
-
-	right = glm::normalize(glm::cross(front, _worldUp));
-	up = glm::normalize(glm::cross(right, front));
+glm::mat4 Camera::ProjectionMatrix() {
+	return projectionMatrix;
 }
 
 Camera::~Camera() {

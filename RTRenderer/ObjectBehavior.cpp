@@ -1,10 +1,9 @@
 #include "ObjectBehavior.h"
 
-ObjectBehavior::ObjectBehavior(const SceneObject *container)
+ObjectBehavior::ObjectBehavior(Transform *container)
 {
-	this->container = container;
+	this-> transform = container;
 }
-
 
 ObjectBehavior::~ObjectBehavior()
 {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Transform.h"
 #include "ObjectBehavior.h"
 #include "Camera.h"
 
@@ -15,7 +16,7 @@ private:
 	void MouseControl();
 
 public:
-	CameraController(const SceneObject* container, Camera* camera, GLfloat moveSpeed, GLfloat turnSpeed);
+	CameraController(Transform* container, Camera* camera, GLfloat moveSpeed, GLfloat turnSpeed);
 
 	void SetUp();
 	void Update();

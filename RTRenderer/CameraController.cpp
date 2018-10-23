@@ -1,6 +1,6 @@
 #include "CameraController.h"
 
-CameraController::CameraController(const SceneObject* container, Camera* camera, GLfloat moveSpeed, GLfloat turnSpeed)
+CameraController::CameraController(Transform* container, Camera* camera, GLfloat moveSpeed, GLfloat turnSpeed)
 	: ObjectBehavior(container)
 {
 	this->camera = camera;
@@ -13,19 +13,23 @@ void CameraController::SetUp() {
 }
 
 void CameraController::KeyControl() {
-	GLfloat velocity = moveSpeed * Time::GetDeltaTime();
+	/*GLfloat velocity = moveSpeed * Time::GetDeltaTime();
 	if (Input::IsKeyPress(GLFW_KEY_W)) {
-		camera->position += camera->front * velocity;
+		//camera->position += camera->front * velocity;
+		this->transform->Translate(glm::vec3(0.0f, 0.0f, velocity));
 	}
 	if (Input::IsKeyPress(GLFW_KEY_S)) {
-		camera->position -= camera->front * velocity;
+		//camera->position -= camera->front * velocity;
+		this->transform->Translate(glm::vec3(0.0f, 0.0f, -velocity));
 	}
 	if (Input::IsKeyPress(GLFW_KEY_D)) {
-		camera->position += camera->right * velocity;
+		//camera->position += camera->right * velocity;
+		this->transform->Translate(glm::vec3(velocity, 0.0f, 0.0f));
 	}
 	if (Input::IsKeyPress(GLFW_KEY_A)) {
-		camera->position -= camera->right * velocity;
-	}
+		//camera->position -= camera->right * velocity;
+		this->transform->Translate(glm::vec3(-velocity, 0.0f, 0.0f));
+	}*/
 }
 
 void CameraController::MouseControl() {
@@ -35,17 +39,7 @@ void CameraController::MouseControl() {
 	xDelta *= turnSpeed;
 	yDelta *= turnSpeed;
 
-	camera->yaw += xDelta;
-	camera->pitch += yDelta;
-
-	if (camera->pitch > 89.0f)
-	{
-		camera->pitch = 89.0f;
-	}
-	else if (camera->pitch < -89.0f)
-	{
-		camera->pitch = -89.0f;
-	}
+	this->transform->Rotate(glm::vec3(yDelta, -xDelta, 0.0f) * Time::GetDeltaTime());
 }
 
 void CameraController::Update() {

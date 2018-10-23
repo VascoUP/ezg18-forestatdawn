@@ -12,16 +12,17 @@
 
 #include "GLWindow.h"
 #include "Time.h"
-#include "SceneObject.h"
 #include "Mesh.h"
 #include "Shader.h"
 #include "Camera.h"
 #include "CameraController.h"
+#include "RotationObjects.h"
+#include "ObjectController.h"
 
 const float toRadians = 3.14159265359f / 180.0f;
 
 GLWindow *glWindow;
-std::vector<Mesh*> meshList;
+Transform* rootObject;
 std::vector<Shader> shaderList;
 
 GLfloat deltaTime = 0.0f;
@@ -35,7 +36,7 @@ static const char* vShader = "Shaders/shader.vert";
 // Fragment Shader
 static const char* fShader = "Shaders/shader.frag";
 
-void CreateObjects() {
+void CreateObjects(Transform* parent) {
 	unsigned int indices[] = {
 		0, 3, 1,
 		1, 3, 2,
@@ -49,13 +50,19 @@ void CreateObjects() {
 		0.0f, 1.0f, 0.0f
 	};
 
-	Mesh *tri1 = new Mesh();
-	tri1->CreateMesh(vertices, indices, 12, 12);
-	meshList.push_back(tri1);
-
-	Mesh *tri2 = new Mesh();
-	tri2->CreateMesh(vertices, indices, 12, 12);
-	meshList.push_back(tri2);
+	Transform* meshChild1 = new Transform(parent);
+	meshChild1->Translate(glm::vec3(0.0f, 0.0f, 5.0f));
+	Mesh *tri1 = new Mesh(meshChild1);
+	tri1->CreateMesh(&shaderList[0], vertices, indices, 12, 12);
+	meshChild1->AddRenderable(tri1);
+	meshChild1->AddUpdatable(new ObjectController(meshChild1, 2.0f, 1.5f));
+	
+	Transform* meshChild2 = new Transform(meshChild1);
+	meshChild2->Translate(glm::vec3(0.0f, 1.0f, 0.0f));
+	meshChild2->Scale(glm::vec3(0.2f, 0.2f, 0.2f));
+	Mesh *tri2 = new Mesh(meshChild2);
+	tri2->CreateMesh(&shaderList[0], vertices, indices, 12, 12);
+	meshChild2->AddRenderable(tri2);
 }
 
 void CreateShaders() {
@@ -68,24 +75,22 @@ int main() {
 	glWindow = new GLWindow(800, 600);
 	glWindow->Initialize();
 
-	CreateObjects();
+	rootObject = new Transform();
+	rootObject->Translate(glm::vec3(0.0f, 0.0f, 0.0f));
+
 	CreateShaders();
-
-	SceneObject object(new Transform());
-	object.AddUpdatable(Camera::CreateInstance(&object, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.0f, 0));
-	object.AddUpdatable(new CameraController(&object, Camera::GetInstance(), 5.0f, 1.0f));
-
-	GLuint uniformProjection = 0, uniformView = 0, uniformModel = 0;
-	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)glWindow->GetBufferWidht() / (GLfloat)glWindow->GetBufferHeight(), 0.1f, 100.0f);
-	glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-	float rot = 0;
-	float deltaRot = 0.002f;
-
+	CreateObjects(rootObject);
+	
+	Transform object(rootObject);
+	object.AddUpdatable(Camera::CreateInstance(&object, glWindow));
+	object.AddUpdatable(new CameraController(&object, Camera::GetInstance(), 5.0f, 5.0f));
+	
 	if (Camera::GetInstance() == NULL) {
 		printf("Camera has not been setup");
 		return 1;
 	}
+
+	rootObject->SetUp();
 
 	// Loop until window closed
 	while (!glWindow->GetShouldClose()) {
@@ -94,42 +99,13 @@ int main() {
 		// Get + Handle user input events
 		glfwPollEvents();
 
-		rot += deltaRot;
-
-		object.Update();
-
-		Camera::GetInstance()->Update();
+		rootObject->Update();
 
 		// Clear Window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shaderList[0].UseShader();
-		uniformModel = shaderList[0].GetModelLocation(); 
-		uniformView = shaderList[0].GetViewLocation();
-		uniformProjection = shaderList[0].GetProjectionLocation();
-
-		glm::mat4 model;
-		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -2.5f));
-		model = glm::rotate(model, rot, glm::vec3(0, 1, 0));
-		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
-
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->CalculateViewMatrix()));
-		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
-
-		meshList[0]->Render();
-
-		model = glm::mat4();
-		model = glm::translate(model, glm::vec3(1.0f, 0.0f, -2.5f));
-		model = glm::rotate(model, rot, glm::vec3(0, 1, 0));
-		model = glm::scale(model, glm::vec3(0.4f, 0.4f, 1.0f));
-
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->CalculateViewMatrix()));
-		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
-
-		meshList[1]->Render();
+		rootObject->Render();
 
 		glUseProgram(0);
 

@@ -1,6 +1,7 @@
 #include "Mesh.h"
 
-Mesh::Mesh() : Updatable(), Renderable()
+Mesh::Mesh(Transform* object) 
+	: ObjectBehavior(object), Renderable()
 {
 	VAO = 0;
 	VBO = 0;
@@ -8,8 +9,9 @@ Mesh::Mesh() : Updatable(), Renderable()
 	indexCount = 0;
 }
 
+void Mesh::CreateMesh(Shader* shader, GLfloat *vertices, unsigned int *indices, unsigned int numOfVertices, unsigned int numOfIndices) {
+	this->shader = shader;
 
-void Mesh::CreateMesh(GLfloat *vertices, unsigned int *indices, unsigned int numOfVertices, unsigned int numOfIndices) {
 	indexCount = numOfIndices;
 
 	// Bind mesh values
@@ -39,6 +41,15 @@ void Mesh::Render() {
 	if (indexCount == 0)
 		return;
 
+	shader->UseShader();
+	GLuint uniformModel = shader->GetModelLocation();
+	GLuint uniformView = shader->GetViewLocation();
+	GLuint uniformProjection = shader->GetProjectionLocation();
+	
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(transform->TransformMatrix(true)));
+	glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->CalculateViewMatrix()));
+	glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->ProjectionMatrix()));
+
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
@@ -62,7 +73,6 @@ void Mesh::ClearMesh() {
 
 	indexCount = 0;
 }
-
 
 Mesh::~Mesh()
 {

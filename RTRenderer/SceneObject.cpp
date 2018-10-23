@@ -2,15 +2,25 @@
 
 int SceneObject::NEXT_ID = 1;
 
-SceneObject::SceneObject(Transform* transform)
+SceneObject::SceneObject() {
+	this->transform = new Transform(this);
+}
+
+SceneObject::SceneObject(Transform* parent)
 {
-	this->transform = transform;
+	this->transform = new Transform(this, parent);
 }
 
 void SceneObject::SetUp() {
 	for (std::vector<Updatable*>::iterator it = updatables.begin(); it != updatables.end(); it++)
 	{
 		(*it)->SetUp();
+	}
+
+	// Iterate over children
+	for (std::vector<Transform*>::iterator it = transform->GetChildren().begin(); it != transform->GetChildren().end(); it++)
+	{
+		(*it)->GetContainer().SetUp();
 	}
 }
 
@@ -23,6 +33,28 @@ void SceneObject::Update() {
 	{
 		(*it)->Update();
 	}
+
+	// Iterate over children
+	for (std::vector<Transform*>::iterator it = transform->GetChildren().begin(); it != transform->GetChildren().end(); it++)
+	{
+		(*it)->GetContainer().Update();
+	}
+}
+
+void SceneObject::Render() {
+	if (!active)
+		return;
+
+	for (std::vector<Renderable*>::iterator it = renderables.begin(); it != renderables.end(); it++)
+	{
+		(*it)->Render();
+	}
+
+	// Iterate over children
+	for (std::vector<Transform*>::iterator it = transform->GetChildren().begin(); it != transform->GetChildren().end(); it++)
+	{
+		(*it)->GetContainer().Render();
+	}
 }
 
 void SceneObject::SetActive(bool active) {
@@ -33,8 +65,8 @@ void SceneObject::AddUpdatable(Updatable* updatable) {
 	updatables.push_back(updatable);
 }
 
-void SceneObject::RemoveUpdatable(Updatable* updatable) {
-	//updatables.erase(std::remove_if(std::begin(updatables), std::end(updatables), updatable), std::end(updatables));
+void SceneObject::AddRenderable(Renderable* renderable) {
+	renderables.push_back(renderable);
 }
 
 Transform* SceneObject::GetTransform() {

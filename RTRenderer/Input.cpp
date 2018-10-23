@@ -66,6 +66,4 @@ void Input::HandleMouse(GLFWwindow *window, double xPosition, double yPosition) 
 
 	previousX = xPosition;
 	previousY = yPosition;
-
-	printf("Delta X:%.6f delta Y:%.6f\n", deltaX, deltaY);
 }

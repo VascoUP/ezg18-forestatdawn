@@ -4,32 +4,27 @@
 
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
+#include <glm\gtc\type_ptr.hpp>
 
-#include "SceneObject.h"
+#include "Transform.h"
 #include "ObjectBehavior.h"
 #include "Time.h"
 #include "Input.h"
+#include "GLWindow.h"
 
 class Camera: public ObjectBehavior
 {
 private:
 	static Camera* camera;
-	Camera(const SceneObject* object, glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch);
+	Camera(Transform* object, GLWindow* window);
 
-	glm::vec3 _worldUp;
+	glm::mat4 projectionMatrix;
 public:
-	glm::vec3 position;
-	glm::vec3 front;
-	glm::vec3 right;
-	glm::vec3 up;
-
-	GLfloat yaw;
-	GLfloat pitch;
-
-	static Camera* CreateInstance(const SceneObject* object, glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch);
+	static Camera* CreateInstance(Transform* object, GLWindow* window);
 	static Camera* GetInstance();
 
 	glm::mat4 CalculateViewMatrix();
+	glm::mat4 ProjectionMatrix();
 
 	void SetUp();
 	void Update();

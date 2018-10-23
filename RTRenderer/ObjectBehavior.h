@@ -1,14 +1,15 @@
 #pragma once
 
+#include "Transform.h"
 #include "Updatable.h"
 #include "SceneObject.h"
 
 class ObjectBehavior : public Updatable
 {
-private:
-	const SceneObject* container;
+protected:
+	Transform* transform;
 public:
-	ObjectBehavior(const SceneObject* container);
+	ObjectBehavior(Transform* container);
 	~ObjectBehavior();
 };
 

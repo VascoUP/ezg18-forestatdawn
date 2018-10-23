@@ -101,7 +101,6 @@ void Transform::AddRenderable(Renderable* renderable) {
 
 void Transform::Translate(glm::vec3 translate) {
 	this->position += right * translate.x + up * translate.y + front * translate.z;
-	printf("Position X:%.6f Y:%.6f Z:%.6f\n", position.x, position.y, position.z);
 }
 
 void Transform::Scale(glm::vec3 scale) {

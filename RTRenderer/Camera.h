@@ -23,6 +23,8 @@ public:
 	static Camera* CreateInstance(Transform* object, GLWindow* window);
 	static Camera* GetInstance();
 
+	glm::vec3 GetCameraPosition();
+
 	glm::mat4 CalculateViewMatrix();
 	glm::mat4 ProjectionMatrix();
 

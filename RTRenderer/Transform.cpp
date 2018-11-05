@@ -70,22 +70,6 @@ void Transform::Update() {
 	}
 }
 
-void Transform::Render() {
-	if (!active)
-		return;
-
-	for (std::vector<Renderable*>::iterator it = renderables.begin(); it != renderables.end(); it++)
-	{
-		(*it)->Render();
-	}
-
-	// Iterate over children
-	for (std::vector<Transform*>::iterator it = children.begin(); it != children.end(); it++)
-	{
-		(*it)->Render();
-	}
-}
-
 void Transform::SetActive(bool active) {
 	this->active = active;
 }
@@ -93,11 +77,6 @@ void Transform::SetActive(bool active) {
 void Transform::AddUpdatable(Updatable* updatable) {
 	updatables.push_back(updatable);
 }
-
-void Transform::AddRenderable(Renderable* renderable) {
-	renderables.push_back(renderable);
-}
-
 
 void Transform::Translate(glm::vec3 translate) {
 	this->position += right * translate.x + up * translate.y + front * translate.z;
@@ -157,25 +136,6 @@ glm::mat4 Transform::GetWorldTransform() {
 }
 
 glm::mat4 Transform::TransformMatrix(bool doScale) {
-	/*
-	float cosYaw = cos(rotation.z);
-	float sinYaw = sin(rotation.z);
-	float cosPitch = cos(rotation.y);
-	float sinPitch = sin(rotation.y);
-	float cosRoll = cos(rotation.x);
-	float sinRoll = sin(rotation.x);
-
-	float arrTransform[16] = {
-		cosYaw * cosPitch,	cosYaw * sinPitch * sinRoll - sinYaw * cosRoll,		cosYaw * sinPitch * cosRoll + sinYaw * sinRoll,		0,
-		sinYaw * cosPitch,	sinYaw * sinPitch * sinRoll + cosYaw * cosRoll,		sinYaw * sinPitch * cosRoll - cosYaw * sinRoll,		0,
-		-sinPitch,			cosPitch * sinRoll,									cosPitch * cosRoll,									0,
-		0,					0,													0,													1
-	};
-	localTransformation = glm::make_mat4(arrTransform);
-	glm::translate(localTransformation, position);
-	*/
-	//localTransformation = glm::lookAt(position, position + front, up);
-
 	localTransformation = glm::mat4();
 	localTransformation = glm::translate(localTransformation, position);
 	localTransformation = glm::rotate(localTransformation, rotation.x, glm::vec3(1, 0, 0));

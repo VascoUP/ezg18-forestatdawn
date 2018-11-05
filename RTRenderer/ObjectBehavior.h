@@ -10,6 +10,9 @@ protected:
 	Transform* transform;
 public:
 	ObjectBehavior(Transform* container);
+
+	Transform* GetTransform();
+
 	~ObjectBehavior();
 };
 

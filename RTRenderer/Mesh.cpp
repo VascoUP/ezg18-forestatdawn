@@ -1,18 +1,24 @@
 #include "Mesh.h"
 
-Mesh::Mesh(Transform* object) 
-	: ObjectBehavior(object), Renderable()
+Mesh::Mesh(Transform * object, MeshInfo * info)
+	: ObjectBehavior(object), Renderable(object)
 {
+	meshInfo = info;
+
 	VAO = 0;
 	VBO = 0;
 	EBO = 0;
 	indexCount = 0;
+	texture = nullptr;
 }
 
-void Mesh::CreateMesh(Shader* shader, GLfloat *vertices, unsigned int *indices, unsigned int numOfVertices, unsigned int numOfIndices) {
-	this->shader = shader;
+void Mesh::SetTexture(Texture * tex)
+{
+	texture = tex;
+}
 
-	indexCount = numOfIndices;
+void Mesh::Load() {
+	indexCount = meshInfo->numOfIndices;
 
 	// Bind mesh values
 	glGenVertexArrays(1, &VAO);
@@ -20,20 +26,26 @@ void Mesh::CreateMesh(Shader* shader, GLfloat *vertices, unsigned int *indices, 
 
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices[0]) * numOfIndices, indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(meshInfo->indices[0]) * meshInfo->numOfIndices, meshInfo->indices, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices[0]) * numOfVertices, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(meshInfo->vertices[0]) * meshInfo->numOfVertices, meshInfo->vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(meshInfo->vertices[0]) * 8, 0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(meshInfo->vertices[0]) * 8, (void*)(sizeof(meshInfo->vertices[0]) * 3));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(meshInfo->vertices[0]) * 8, (void*)(sizeof(meshInfo->vertices[0]) * 5));
+	glEnableVertexAttribArray(2);
 
 	// Unbind this mesh's values
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
+
+	delete meshInfo;
 }
 
 void Mesh::Render() {
@@ -41,14 +53,8 @@ void Mesh::Render() {
 	if (indexCount == 0)
 		return;
 
-	shader->UseShader();
-	GLuint uniformModel = shader->GetModelLocation();
-	GLuint uniformView = shader->GetViewLocation();
-	GLuint uniformProjection = shader->GetProjectionLocation();
-	
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(transform->TransformMatrix(true)));
-	glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->CalculateViewMatrix()));
-	glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->ProjectionMatrix()));
+	if (texture)
+		texture->UseTexture();
 
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -57,7 +63,7 @@ void Mesh::Render() {
 	glBindVertexArray(0);
 }
 
-void Mesh::ClearMesh() {
+void Mesh::Clear() {
 	if (EBO != 0) {
 		glDeleteBuffers(1, &EBO);
 		EBO = 0;
@@ -76,5 +82,5 @@ void Mesh::ClearMesh() {
 
 Mesh::~Mesh()
 {
-	ClearMesh();
+	Clear();
 }

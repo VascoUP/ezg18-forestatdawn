@@ -16,6 +16,11 @@ Camera* Camera::GetInstance() {
 	return camera;
 }
 
+glm::vec3 Camera::GetCameraPosition()
+{
+	return transform->GetPosition();
+}
+
 Camera::Camera(Transform* object, GLWindow* window) :
 	ObjectBehavior(object)
 {

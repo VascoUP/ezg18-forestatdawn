@@ -22,6 +22,20 @@ private:
 	GLuint uniformView;
 	// Model matrix
 	GLuint uniformModel;
+	// Camera Position
+	GLuint uniformCameraPosition;
+	// Ambient light intensity
+	GLuint uniformAmbientIntensity;
+	// Light color
+	GLuint uniformLightColor;
+	// Direction light intensity
+	GLuint uniformDirectionalIntensity;
+	// Directional light direction
+	GLuint uniformDirectionalDirection;
+	// Specular intensity
+	GLuint uniformSpecularIntensity;
+	// Shininess
+	GLuint uniformShininess;
 
 public:
 	// Constructor
@@ -39,6 +53,20 @@ public:
 	GLuint GetViewLocation();
 	// Getter for uniformModel
 	GLuint GetModelLocation();
+	// Getter for uniformCameraPosition
+	GLuint GetCameraPositionLocation();
+	// Getter for uniformAmbientIntensity
+	GLuint GetAmbienteIntensityLocation();
+	// Getter for uniformLightColor
+	GLuint GetColorLocation();
+	// Getter for uniformDirectionalIntensity
+	GLuint GetDirectionalIntensityLocation();
+	// Getter for uniformDirectionalDirection
+	GLuint GetDirectionalDirectionLocation();
+	// Getter for uniformSpecularIntensity
+	GLuint GetSpecularIntensityLocation();
+	// Getter for uniformShininess
+	GLuint GetShininessLocation();
 
 	// Activates this shader whenever it's called
 	void UseShader();

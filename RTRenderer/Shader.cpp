@@ -6,6 +6,10 @@ Shader::Shader()
 	uniformModel = 0;
 	uniformView = 0;
 	uniformProjection = 0;
+	uniformLightColor = 0;
+	uniformAmbientIntensity = 0;
+	uniformDirectionalIntensity = 0;
+	uniformDirectionalDirection = 0;
 }
 
 bool Shader::CreateFromString(const char* vertexCode, const char* fragmentCode) {
@@ -23,6 +27,15 @@ bool Shader::CreateFromString(const char* vertexCode, const char* fragmentCode) 
 		uniformModel = glGetUniformLocation(shaderID, "model");
 		uniformView = glGetUniformLocation(shaderID, "view");
 		uniformProjection = glGetUniformLocation(shaderID, "projection");
+		uniformProjection = glGetUniformLocation(shaderID, "projection");
+		uniformProjection = glGetUniformLocation(shaderID, "projection");
+		uniformLightColor = glGetUniformLocation(shaderID, "directionalLight.color");
+		uniformCameraPosition = glGetUniformLocation(shaderID, "cameraPosition");
+		uniformAmbientIntensity = glGetUniformLocation(shaderID, "directionalLight.ambientIntensity");
+		uniformDirectionalIntensity = glGetUniformLocation(shaderID, "directionalLight.intensity");
+		uniformDirectionalDirection = glGetUniformLocation(shaderID, "directionalLight.direction");
+		uniformSpecularIntensity = glGetUniformLocation(shaderID, "material.specularIntensity");
+		uniformShininess = glGetUniformLocation(shaderID, "material.shininess");
 	}
 
 	return success;
@@ -74,6 +87,40 @@ GLuint Shader::GetViewLocation() {
 
 GLuint Shader::GetModelLocation() {
 	return uniformModel;
+}
+
+GLuint Shader::GetCameraPositionLocation()
+{
+	return uniformCameraPosition;
+}
+
+GLuint Shader::GetAmbienteIntensityLocation() {
+	return uniformAmbientIntensity;
+}
+
+GLuint Shader::GetColorLocation()
+{
+	return uniformLightColor;
+}
+
+GLuint Shader::GetDirectionalIntensityLocation()
+{
+	return uniformDirectionalIntensity;
+}
+
+GLuint Shader::GetDirectionalDirectionLocation()
+{
+	return uniformDirectionalDirection;
+}
+
+GLuint Shader::GetSpecularIntensityLocation()
+{
+	return uniformSpecularIntensity;
+}
+
+GLuint Shader::GetShininessLocation()
+{
+	return uniformShininess;
 }
 
 void Shader::UseShader() {

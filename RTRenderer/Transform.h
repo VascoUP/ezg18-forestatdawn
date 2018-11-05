@@ -9,11 +9,9 @@
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Transform.h"
 #include "Updatable.h"
-#include "Renderable.h"
 
-class Transform : public Updatable, Renderable
+class Transform : public Updatable
 {
 private:
 	static int NEXT_ID;
@@ -25,8 +23,6 @@ private:
 
 	bool active = true;
 	std::vector<Updatable*> updatables;
-	std::vector<Renderable*> renderables;
-
 
 	//! List of all children.
 	std::vector<Transform*> children;
@@ -104,13 +100,9 @@ public:
 
 	void Update();
 
-	void Render();
-
 	void SetActive(bool active);
 
 	void AddUpdatable(Updatable* updatable);
-
-	void AddRenderable(Renderable* renderable);
 
 
 	/*!

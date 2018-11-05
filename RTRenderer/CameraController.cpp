@@ -13,23 +13,19 @@ void CameraController::SetUp() {
 }
 
 void CameraController::KeyControl() {
-	/*GLfloat velocity = moveSpeed * Time::GetDeltaTime();
+	GLfloat velocity = moveSpeed * Time::GetDeltaTime();
 	if (Input::IsKeyPress(GLFW_KEY_W)) {
-		//camera->position += camera->front * velocity;
 		this->transform->Translate(glm::vec3(0.0f, 0.0f, velocity));
 	}
 	if (Input::IsKeyPress(GLFW_KEY_S)) {
-		//camera->position -= camera->front * velocity;
 		this->transform->Translate(glm::vec3(0.0f, 0.0f, -velocity));
 	}
 	if (Input::IsKeyPress(GLFW_KEY_D)) {
-		//camera->position += camera->right * velocity;
-		this->transform->Translate(glm::vec3(velocity, 0.0f, 0.0f));
+		this->transform->Translate(glm::vec3(-velocity, 0.0f, 0.0f));
 	}
 	if (Input::IsKeyPress(GLFW_KEY_A)) {
-		//camera->position -= camera->right * velocity;
-		this->transform->Translate(glm::vec3(-velocity, 0.0f, 0.0f));
-	}*/
+		this->transform->Translate(glm::vec3(velocity, 0.0f, 0.0f));
+	}
 }
 
 void CameraController::MouseControl() {

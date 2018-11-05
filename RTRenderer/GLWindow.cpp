@@ -2,8 +2,8 @@
 
 GLWindow::GLWindow()
 {
-	width = 800;
-	height = 600;
+	width = 1600;
+	height = 900;
 }
 
 GLWindow::GLWindow(GLint windowWidth, GLint windowHeight) {
@@ -55,6 +55,8 @@ int GLWindow::Initialize() {
 		return 1;
 	}
 
+	glCullFace(GL_FRONT);
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
 	// Setup viewport

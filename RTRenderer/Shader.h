@@ -9,6 +9,10 @@
 
 #include "ShaderCompiler.h"
 #include "ErrorShader.h"
+#include "Material.h"
+#include "DirectionalLight.h"
+#include "PointLight.h"
+#include "Commons.h"
 
 // This class holds the information needed to run simple shader program
 class Shader
@@ -16,26 +20,60 @@ class Shader
 private:
 	// ID of the shader
 	GLuint shaderID;
+
+	// -- Transformation --
 	// Projection matrix
 	GLuint uniformProjection;
 	// View matrix
 	GLuint uniformView;
 	// Model matrix
 	GLuint uniformModel;
+
+	// -- Camera --
 	// Camera Position
 	GLuint uniformCameraPosition;
+
+	// -- Ambiente Light --
 	// Ambient light intensity
 	GLuint uniformAmbientIntensity;
-	// Light color
-	GLuint uniformLightColor;
-	// Direction light intensity
-	GLuint uniformDirectionalIntensity;
-	// Directional light direction
-	GLuint uniformDirectionalDirection;
-	// Specular intensity
-	GLuint uniformSpecularIntensity;
-	// Shininess
-	GLuint uniformShininess;
+
+	// -- Directional light --
+	struct {
+		// Directional light diffuse color
+		GLuint uniformDiffuseColor;
+		// Directional light diffuse factor
+		GLuint uniformDiffuseFactor;
+		// Directional light diffuse color
+		GLuint uniformSpecularColor;
+		// Directional light diffuse factor
+		GLuint uniformSpecularFactor;
+		// Directional light direction
+		GLuint uniformDirection;
+	} uniformDirectionalLight;
+
+	int pointLightCount;
+	GLuint uniformPointLightCount;
+	struct {
+		GLuint uniformDiffuseColor;
+		GLuint uniformDiffuseFactor;
+		GLuint uniformSpecularColor;
+		GLuint uniformSpecularFactor;
+
+		GLuint uniformPosition;
+		GLuint uniformConstant;
+		GLuint uniformLinear;
+		GLuint uniformExponent;
+	} uniformPointLights[MAX_POINT_LIGHTS];
+
+	// -- Material --
+	struct  {
+		// Specular intensity
+		GLuint uniformSpecularIntensity;
+		// Shininess
+		GLuint uniformShininess;
+		// Albedo
+		GLuint uniformAlbedo;
+	} uniformMaterial;
 
 public:
 	// Constructor
@@ -53,20 +91,18 @@ public:
 	GLuint GetViewLocation();
 	// Getter for uniformModel
 	GLuint GetModelLocation();
+
 	// Getter for uniformCameraPosition
 	GLuint GetCameraPositionLocation();
+
 	// Getter for uniformAmbientIntensity
 	GLuint GetAmbienteIntensityLocation();
-	// Getter for uniformLightColor
-	GLuint GetColorLocation();
-	// Getter for uniformDirectionalIntensity
-	GLuint GetDirectionalIntensityLocation();
-	// Getter for uniformDirectionalDirection
-	GLuint GetDirectionalDirectionLocation();
-	// Getter for uniformSpecularIntensity
-	GLuint GetSpecularIntensityLocation();
-	// Getter for uniformShininess
-	GLuint GetShininessLocation();
+
+	void SetDirectionalLight(DirectionalLight* light);
+
+	void SetPointLights(PointLight* pLight, unsigned int lightCount);
+	
+	void SetMaterial(Material* mat);
 
 	// Activates this shader whenever it's called
 	void UseShader();

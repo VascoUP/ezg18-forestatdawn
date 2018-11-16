@@ -2,7 +2,8 @@
 
 MeshRenderer::MeshRenderer()
 {
-	mat = new Material(0.8f, 256);
+	mat = new Material(0.8f, 256, 1.0f, 0.5f, 0.5f);
+	ambientIntensity = 0.1f;
 }
 
 std::vector<Texture*> MeshRenderer::GetTextures()
@@ -10,9 +11,15 @@ std::vector<Texture*> MeshRenderer::GetTextures()
 	return textures;
 }
 
-void MeshRenderer::SetLight(Light * light)
+void MeshRenderer::SetDirectionalLight(DirectionalLight * light)
 {
 	directionalLight = light;
+}
+
+void MeshRenderer::AddPointLight(PointLight* light) {
+	pointLights[pointLightsCount] = light;
+	if (pointLightsCount <= MAX_POINT_LIGHTS)
+		pointLightsCount++;
 }
 
 void MeshRenderer::AddModels(Renderable * mesh)
@@ -35,24 +42,30 @@ void MeshRenderer::AddShader(Shader * shader)
 
 void MeshRenderer::Render()
 {
-	GLuint uniformModel = 0, uniformView = 0, uniformProjection = 0, uniformAmbientColor = 0, uniformAmbientIntensity = 0, uniformCameraPosition = 0;
+	GLuint uniformModel = 0, uniformView = 0, uniformProjection = 0, uniformAmbientColor = 0, uniformAmbientIntensity = 0, uniformCameraPosition = 0, uniformAmbienteIntensity = 0;
+	
 	shader->UseShader();
 	uniformModel = shader->GetModelLocation();
 	uniformView = shader->GetViewLocation();
 	uniformProjection = shader->GetProjectionLocation();
 	uniformCameraPosition = shader->GetCameraPositionLocation();
+	uniformAmbienteIntensity = shader->GetAmbienteIntensityLocation();
 
 	for (size_t i = 0; i < models.size(); i++) {
 		if (!models[i])
 			continue;
 
-		directionalLight->UseLight(shader->GetAmbienteIntensityLocation(), shader->GetColorLocation(), shader->GetDirectionalDirectionLocation(), shader->GetDirectionalIntensityLocation());
-		mat->UseMaterial(shader->GetSpecularIntensityLocation(), shader->GetShininessLocation());
-
+		// Set uniforms
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(models[i]->GetTransform()->TransformMatrix(true)));
 		glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->CalculateViewMatrix()));
 		glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->ProjectionMatrix()));
+		
 		glUniform3f(uniformCameraPosition, Camera::GetInstance()->GetCameraPosition().x, Camera::GetInstance()->GetCameraPosition().y, Camera::GetInstance()->GetCameraPosition().z);
+		glUniform1f(uniformAmbienteIntensity, ambientIntensity);
+
+		shader->SetDirectionalLight(directionalLight);
+		shader->SetPointLights(pointLights[0], pointLightsCount);
+		shader->SetMaterial(mat);
 
 		models[i]->Render();
 	}

@@ -5,18 +5,17 @@
 
 class Light
 {
-private:
-	glm::vec3 color;
-	GLfloat ambientIntensity;
-
-	glm::vec3 direction;
+protected:
 	GLfloat diffuseIntensity;
+	glm::vec3 diffuseColor;
+	GLfloat specularIntensity;
+	glm::vec3 specularColor;
 
 public:
 	Light();
-	Light(GLfloat red, GLfloat green, GLfloat blue, GLfloat ambientIntensity, GLfloat xDir, GLfloat yDir, GLfloat zDir, GLfloat diffuseIntensity);
+	Light(GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue);
 
-	void UseLight(unsigned int ambientIntensityLocation, unsigned int ambientColorLocation, unsigned int diffuseIntensityLocation, unsigned int directionLocation);
+	void UseLight(GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation);
 
 	~Light();
 };

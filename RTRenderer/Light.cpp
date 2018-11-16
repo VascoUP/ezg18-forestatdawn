@@ -2,28 +2,28 @@
 
 Light::Light()
 {
-	color = glm::vec3(1.0f, 1.0f, 1.0f);
-	ambientIntensity = 1.0f;
+	diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	diffuseIntensity = 0.5f;
 
-	direction = glm::vec3(0.0f, -1.0f, 0.0f);
-	diffuseIntensity = 0;
+	specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	specularIntensity = 0.5f;
 }
 
-Light::Light(GLfloat red, GLfloat green, GLfloat blue, GLfloat ambientIntensity, GLfloat xDir, GLfloat yDir, GLfloat zDir, GLfloat diffuseIntensity)
+Light::Light(GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
 {
-	color = glm::vec3(red, green, blue);
-	this->ambientIntensity = ambientIntensity;
+	diffuseColor = glm::vec3(diffRed, diffGreen, diffBlue);
+	diffuseIntensity = diffIntensity;
 
-	direction = glm::vec3(xDir, yDir, zDir);
-	this->diffuseIntensity = diffuseIntensity;
+	specularColor = glm::vec3(specRed, specGreen, specBlue);
+	specularIntensity = specIntensity;
 }
 
-void Light::UseLight(unsigned int ambientIntensityLocation, unsigned int ambientColorLocation, unsigned int directionLocation, unsigned int diffuseIntensityLocation)
+void Light::UseLight(GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation)
 {
-	glUniform3f(ambientColorLocation, color.x, color.y, color.z);
-	glUniform1f(ambientIntensityLocation, ambientIntensity);
-	glUniform3f(directionLocation, direction.x, direction.y, direction.z);
-	glUniform1f(diffuseIntensityLocation, diffuseIntensity);
+	glUniform3f(diffuseColorLocation, diffuseColor.r, diffuseColor.g, diffuseColor.b);
+	glUniform3f(diffuseFactorLocation, diffuseIntensity, diffuseIntensity, diffuseIntensity);
+	glUniform3f(specularColorLocation, specularColor.r, specularColor.g, specularColor.b);
+	glUniform3f(specularFactorLocation, specularIntensity, specularIntensity, specularIntensity);
 }
 
 Light::~Light()

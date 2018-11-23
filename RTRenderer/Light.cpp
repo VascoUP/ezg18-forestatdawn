@@ -1,7 +1,9 @@
 #include "Light.h"
 
-Light::Light()
+Light::Light(Transform* transform)
 {
+	this->transform = transform;
+
 	diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	diffuseIntensity = 0.5f;
 
@@ -9,8 +11,10 @@ Light::Light()
 	specularIntensity = 0.5f;
 }
 
-Light::Light(GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
+Light::Light(Transform * transform, GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
 {
+	this->transform = transform;
+
 	diffuseColor = glm::vec3(diffRed, diffGreen, diffBlue);
 	diffuseIntensity = diffIntensity;
 

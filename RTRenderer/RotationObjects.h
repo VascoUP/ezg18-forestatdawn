@@ -1,11 +1,11 @@
 #pragma once
 
+#include "AObjectBehavior.h"
 #include "Transform.h"
-#include "ObjectBehavior.h"
 #include "Time.h"
 
 
-class RotatingObject : public ObjectBehavior
+class RotatingObject : public AObjectBehavior
 {
 private:
 	float rotationVelocityX;
@@ -14,6 +14,7 @@ private:
 public:
 	RotatingObject(Transform* container, float velX, float velY, float velZ);
 
+	void SetUp();
 	void Update();
 
 	~RotatingObject();

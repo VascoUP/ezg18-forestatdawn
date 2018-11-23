@@ -4,158 +4,219 @@ int Transform::NEXT_ID = 1;
 
 Transform::Transform() {
 	parent = NULL;
-	InitializeVariables();
+	_InitializeVariables();
 }
 
 Transform::Transform(Transform* parent) {
 	this->parent = parent;
 	this->parent->AddChild(this);
-	InitializeVariables();
+	_InitializeVariables();
 }
 
-void Transform::InitializeVariables() {
-	children = std::vector<Transform*>();
-
-	position = glm::vec3(0, 0, 0);
-	rotation = glm::vec3(0, 0, 0);
-	scale = glm::vec3(1, 1, 1);
+void Transform::_InitializeVariables() {
+	m_static = _GetParentsAreStatic(parent);
+	
+	m_position = glm::vec3(0.0f, 0.0f, 0.0f);
+	m_pitch = 0.0f; m_yaw = 0.0f; m_roll = 0.0f;
+	m_scale = 1.0f;
 
 	if (this->parent != NULL) {
-		worldTransformation = parent->GetWorldTransform();
+		m_worldMatrix = parent->GetWorldMatrix();
 	}
 
-	UpdateRotationAxis();
+	_UpdateRotationAxis();
 	TransformMatrix(false);
 }
 
 
-glm::vec3 Transform::GetPosition() const { return position; }
+void Transform::_SetChildrenDynamic(Transform* transform)
+{
+	transform->m_static = false;
+	for (size_t i = 0; i < transform->m_children.size(); i++) {
+		_SetChildrenDynamic(transform->m_children[i]);
+	}
+}
 
-glm::vec3 Transform::GetFront() const { return front; }
+bool Transform::_GetParentsAreStatic(Transform* transform)
+{
+	return transform == NULL || (transform->m_static && _GetParentsAreStatic(transform->parent));
+}
 
-glm::vec3 Transform::GetUp() const { return up; }
+bool Transform::SetStatic(bool isStatic) {
+	// Transform all children transforms if !isStatic
+	if (!isStatic) {
+		_SetChildrenDynamic(this); 
+		return true;
+	}
+	// This transform can only be static if none of the parent objects are dynamic
+	else if (parent != NULL && _GetParentsAreStatic(parent)) {
+		m_static = isStatic; 
+		return true;
+	}
+	return false;
+}
 
-std::vector<Transform*> Transform::GetChildren() { return children; }
+bool Transform::GetStatic() const
+{
+	return m_static;
+}
 
-void Transform::AddChild(Transform* child) { children.push_back(child); }
+glm::vec3 Transform::GetPosition() { return m_position; }
+
+glm::vec3 Transform::GetWorldPosition()
+{
+	glm::mat4 lMat = glm::mat4();
+	lMat = glm::translate(lMat, m_front);
+	lMat = m_worldMatrix * lMat;
+	return glm::vec3(lMat[3][0], lMat[3][1], lMat[3][2]);
+}
+
+glm::vec3 Transform::GetFront() { return m_front; }
+
+glm::vec3 Transform::GetUp() { return m_up; }
+
+glm::vec3 Transform::GetWorldUp()
+{
+	/*glm::vec4 tmp = glm::vec4(up.x, up.y, up.z, 1.0f);
+	tmp = parent != NULL ? parent->GetWorldMatrix() * tmp : tmp;
+	glm::vec3 res = glm::vec3(tmp.x, tmp.y, tmp.z);
+	return res - GetWorldPosition();*/
+	glm::mat4 lMat = glm::mat4();
+	lMat = glm::translate(lMat, m_up);
+	lMat = m_worldMatrix * lMat;
+	glm::vec3 wPoint = glm::vec3(lMat[3][0], lMat[3][1], lMat[3][2]);
+	glm::vec3 wTranslation = glm::vec3(m_worldMatrix[3][0], m_worldMatrix[3][1], m_worldMatrix[3][2]);
+	return glm::normalize(wPoint - wTranslation);
+}
+
+glm::mat4 Transform::GetWorldMatrix() const {
+	return m_worldMatrix;
+}
+
+glm::mat4 Transform::GetLocalMatrix() const
+{
+	return m_localMatrix;
+}
+
+
+glm::vec3 Transform::LocalToWorldCoordinates(glm::vec3 point, POINT_TYPE type)
+{
+	glm::mat4 lMat = glm::mat4();
+	lMat = glm::translate(lMat, point);
+	lMat = m_worldMatrix * lMat;
+	point = glm::vec3(lMat[3][0], lMat[3][1], lMat[3][2]);
+	if (type == POINT) return point;
+	glm::vec3 wTranslation = glm::vec3(m_worldMatrix[3][0], m_worldMatrix[3][1], m_worldMatrix[3][2]);
+	return glm::normalize(point - wTranslation);
+}
+
+
+std::vector<Transform*> Transform::GetChildren() { return m_children; }
+
+void Transform::AddChild(Transform* child) { m_children.push_back(child); }
 
 
 void Transform::SetUp() {
-	for (std::vector<Updatable*>::iterator it = updatables.begin(); it != updatables.end(); it++)
+	for (std::vector<IUpdatable*>::iterator it = m_updatables.begin(); it != m_updatables.end(); it++)
 	{
 		(*it)->SetUp();
 	}
 
 	// Iterate over children
-	for (std::vector<Transform*>::iterator it = children.begin(); it != children.end(); it++)
+	for (std::vector<Transform*>::iterator it = m_children.begin(); it != m_children.end(); it++)
 	{
 		(*it)->SetUp();
 	}
 }
 
 void Transform::Update() {
-	// Skip Update if the object is not active
-	if (!active)
-		return;
-
-	for (std::vector<Updatable*>::iterator it = updatables.begin(); it != updatables.end(); it++)
+	for (std::vector<IUpdatable*>::iterator it = m_updatables.begin(); it != m_updatables.end(); it++)
 	{
 		(*it)->Update();
 	}
 
 	// Iterate over children
-	for (std::vector<Transform*>::iterator it = children.begin(); it != children.end(); it++)
+	for (std::vector<Transform*>::iterator it = m_children.begin(); it != m_children.end(); it++)
 	{
 		(*it)->Update();
 	}
 }
 
-void Transform::SetActive(bool active) {
-	this->active = active;
+void Transform::AddUpdatable(IUpdatable* updatable) {
+	m_updatables.push_back(updatable);
 }
 
-void Transform::AddUpdatable(Updatable* updatable) {
-	updatables.push_back(updatable);
+void Transform::_PropagateWorldMatrix()
+{
+	for (size_t i = 0; i < m_children.size(); i++) {
+		m_children[i]->_PropagateWorldMatrix(m_worldMatrix);
+	}
 }
+
+void Transform::_PropagateWorldMatrix(glm::mat4 parentWorldMatrix)
+{
+	m_worldMatrix = parentWorldMatrix * m_localMatrix;
+	// Depth first algorithm
+	for (size_t i = 0; i < m_children.size(); i++) {
+		m_children[i]->_PropagateWorldMatrix(m_worldMatrix);
+	}
+}
+
+void Transform::_UpdateLocalMatrix()
+{
+	m_localMatrix = glm::mat4(1.0f);
+	m_localMatrix = glm::translate(m_localMatrix, m_position);
+	m_localMatrix = m_localMatrix * glm::yawPitchRoll(m_yaw, m_pitch, m_roll);
+}
+
+void Transform::_UpdateWolrdMatrix()
+{
+	m_worldMatrix = parent != NULL ? parent->GetWorldMatrix() * m_localMatrix : m_localMatrix;
+}
+
+void Transform::_NotifyTransformation()
+{
+	_UpdateLocalMatrix();
+	_UpdateWolrdMatrix();
+	_PropagateWorldMatrix();
+}
+
 
 void Transform::Translate(glm::vec3 translate) {
-	this->position += right * translate.x + up * translate.y + front * translate.z;
+	this->m_position += m_right * translate.x + m_up * translate.y + m_front * translate.z;
+	_NotifyTransformation();
 }
 
-void Transform::Scale(glm::vec3 scale) {
-	this->scale *= scale;
+void Transform::Scale(GLfloat scale) {
+	this->m_scale *= scale;
 }
 
-void Transform::Rotate(glm::vec3 axis) {
-	this->rotation += axis;
-	UpdateRotationAxis();
+void Transform::_UpdateRotationAxis() {
+	glm::mat4 axis = glm::mat4(1.0f) * glm::yawPitchRoll(m_yaw, m_pitch, m_roll);
+	m_front = axis[2]; m_right = axis[0]; m_up = axis[1];
+	_NotifyTransformation();
 }
 
-glm::mat3 Transform::CalculateRotationMatrix() {
-	float arrMatRoll[9] = {
-		cos(rotation.z),	-sin(rotation.z),	0,
-		sin(rotation.z),	cos(rotation.z),	0,
-		0,					0,					1
-	};
-	glm::mat3 matRoll = glm::make_mat3(arrMatRoll);
-
-	float arrMatYaw[9] = {
-		cos(-rotation.y),	0,	sin(-rotation.y),
-		0,					1,	0,
-		-sin(-rotation.y),	0,	cos(-rotation.y)
-	};
-	glm::mat3 matYaw = glm::make_mat3(arrMatYaw);
-
-	float arrMatPitch[9] = {
-		1, 0,				0,
-		0, cos(rotation.x),	-sin(rotation.x),
-		0, sin(rotation.x),	cos(rotation.x)
-	};
-	glm::mat3 matPitch = glm::make_mat3(arrMatPitch);
-
-	return matRoll * matYaw * matPitch;
+void Transform::Rotate(GLfloat pitch, GLfloat yaw, GLfloat roll) {
+	this->m_pitch += pitch;
+	this->m_yaw += yaw;
+	this->m_roll += roll;
+	_UpdateRotationAxis();
 }
 
-void Transform::UpdateRotationAxis() {	
-	float arrAxis[9] = {
-		1,0,0,
-		0,1,0,
-		0,0,1
-	};
-	glm::mat3 axis = glm::make_mat3(arrAxis);
-
-	axis = axis * CalculateRotationMatrix();
-
-	front = axis[2];
-	right = axis[0];
-	up = axis[1];
-}
-
-glm::mat4 Transform::GetWorldTransform() {
-	return worldTransformation;
-}
 
 glm::mat4 Transform::TransformMatrix(bool doScale) {
-	localTransformation = glm::mat4();
-	localTransformation = glm::translate(localTransformation, position);
-	localTransformation = glm::rotate(localTransformation, rotation.x, glm::vec3(1, 0, 0));
-	localTransformation = glm::rotate(localTransformation, rotation.y, glm::vec3(0, 1, 0));
-	localTransformation = glm::rotate(localTransformation, rotation.z, glm::vec3(0, 0, 1));
-		
-	if (parent == NULL) {
-		worldTransformation = localTransformation;
-	}
-	else {
-		worldTransformation = parent->GetWorldTransform() * localTransformation;
-	}
-
-	if (!doScale)
-		return worldTransformation;
-
-	glm::mat4 scaleMat = glm::scale(glm::mat4(), this->scale);
-	return worldTransformation * scaleMat;
+	if (!doScale) return m_worldMatrix;
+	return m_worldMatrix * glm::scale(glm::mat4(), glm::vec3(this->m_scale, this->m_scale, this->m_scale));
 }
+
 
 Transform::~Transform()
 {
+	for (size_t i = 0; i < m_updatables.size(); i++) {
+		delete m_updatables[i];
+	}
+	for (size_t i = 0; i < m_children.size(); i++) {
+		delete m_children[i];
+	}
 }

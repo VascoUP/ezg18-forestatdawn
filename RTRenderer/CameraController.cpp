@@ -1,7 +1,7 @@
 #include "CameraController.h"
 
 CameraController::CameraController(Transform* container, Camera* camera, GLfloat moveSpeed, GLfloat turnSpeed)
-	: ObjectBehavior(container)
+	: AObjectBehavior(container)
 {
 	this->camera = camera;
 	this->moveSpeed = moveSpeed;
@@ -32,10 +32,10 @@ void CameraController::MouseControl() {
 	GLfloat xDelta, yDelta;
 	Input::GetMouseDelta(&xDelta, &yDelta);
 
-	xDelta *= turnSpeed;
-	yDelta *= turnSpeed;
+	xDelta *= turnSpeed * Time::GetDeltaTime();
+	yDelta *= turnSpeed * Time::GetDeltaTime();
 
-	this->transform->Rotate(glm::vec3(yDelta, -xDelta, 0.0f) * Time::GetDeltaTime());
+	this->transform->Rotate(-yDelta, -xDelta, 0.0f);
 }
 
 void CameraController::Update() {

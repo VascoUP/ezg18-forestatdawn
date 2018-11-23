@@ -11,7 +11,7 @@
 #include "Texture.h"
 
 
-class Model: public Renderable, public ObjectBehavior
+class Model : public IRenderable
 {
 private:
 	std::vector<Mesh*> meshList;
@@ -26,7 +26,7 @@ private:
 	void LoadMesh(aiMesh *mesh, const aiScene *scene);
 	void LoadMaterials(const aiScene *scene);
 public:
-	Model(Transform* parent, const char* filename);
+	Model(const char* filename);
 
 	void Load();
 	void Render();

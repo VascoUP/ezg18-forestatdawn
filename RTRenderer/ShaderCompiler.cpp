@@ -19,7 +19,7 @@ bool ShaderCompiler::AddShader(GLuint myProgram, const char* shaderCode, GLenum 
 	if (!result)
 	{
 		glGetShaderInfoLog(myShader, 1024, NULL, eLog);
-		printf("Error compiling the %d shader: '%s'\n'%s'", shaderType, eLog);
+		printf("Error compiling the %d shader: '%s'\n", shaderType, eLog);
 		return false;
 	}
 

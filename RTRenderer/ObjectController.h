@@ -1,11 +1,11 @@
 #pragma once
 
+#include "AObjectBehavior.h"
 #include "Transform.h"
-#include "ObjectBehavior.h"
 #include "Time.h"
 #include "Input.h"
 
-class ObjectController : public ObjectBehavior
+class ObjectController : public AObjectBehavior
 {
 private:
 	float moveSpeed;

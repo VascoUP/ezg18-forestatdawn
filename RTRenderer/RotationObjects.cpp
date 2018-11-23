@@ -2,15 +2,17 @@
 
 
 RotatingObject::RotatingObject(Transform* container, float velX, float velY, float velZ)
-	: ObjectBehavior(container)
+	: AObjectBehavior(container)
 {
 	rotationVelocityX = velX;
 	rotationVelocityY = velY;
 	rotationVelocityZ = velZ;
 }
 
+void RotatingObject::SetUp() {}
+
 void RotatingObject::Update() {
-	transform->Rotate(glm::vec3(rotationVelocityX, rotationVelocityY, rotationVelocityZ) * Time::GetDeltaTime());
+	transform->Rotate(rotationVelocityX * Time::GetDeltaTime(), rotationVelocityY * Time::GetDeltaTime(), rotationVelocityZ * Time::GetDeltaTime());
 }
 
 RotatingObject::~RotatingObject()

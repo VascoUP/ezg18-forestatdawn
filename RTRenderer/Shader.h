@@ -12,6 +12,7 @@
 #include "Material.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
+#include "SpotLight.h"
 #include "Commons.h"
 
 // This class holds the information needed to run simple shader program
@@ -51,6 +52,7 @@ private:
 		GLuint uniformDirection;
 	} uniformDirectionalLight;
 
+	// -- Point Lights --
 	int pointLightCount;
 	GLuint uniformPointLightCount;
 	struct {
@@ -65,13 +67,27 @@ private:
 		GLuint uniformExponent;
 	} uniformPointLights[MAX_POINT_LIGHTS];
 
+	int spotLightCount;
+	GLuint uniformSpotLightCount;
+	struct {
+		GLuint uniformDiffuseColor;
+		GLuint uniformDiffuseFactor;
+		GLuint uniformSpecularColor;
+		GLuint uniformSpecularFactor;
+
+		GLuint uniformPosition;
+		GLuint uniformConstant;
+		GLuint uniformLinear;
+		GLuint uniformExponent;
+
+		GLuint uniformDirection;
+		GLuint uniformEdge;
+	} uniformSpotLights[MAX_SPOT_LIGHTS];
+
 	// -- Material --
 	struct  {
-		// Specular intensity
 		GLuint uniformSpecularIntensity;
-		// Shininess
 		GLuint uniformShininess;
-		// Albedo
 		GLuint uniformAlbedo;
 	} uniformMaterial;
 
@@ -100,7 +116,9 @@ public:
 
 	void SetDirectionalLight(DirectionalLight* light);
 
-	void SetPointLights(PointLight* pLight, unsigned int lightCount);
+	void SetPointLights(PointLight** pLight, unsigned int lightCount);
+
+	void SetSpotLights(SpotLight** sLight, unsigned int lightCount);
 	
 	void SetMaterial(Material* mat);
 

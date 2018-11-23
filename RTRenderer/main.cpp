@@ -16,209 +16,60 @@
 
 #include "Commons.h"
 
-
 #include "GLWindow.h"
+#include "GLRenderer.h"
 #include "Time.h"
-#include "Camera.h"
-#include "CameraController.h"
-#include "DirectionalLight.h"
-#include "PointLight.h"
-#include "MeshRenderer.h"
-#include "Mesh.h"
+#include "SceneLoader.h"
 #include "Model.h"
+#include "Mesh.h"
+#include "CameraController.h"
 #include "RotationObjects.h"
-
-const float toRadians = 3.14159265359f / 180.0f;
+#include "ObjectController.h"
 
 GLWindow* glWindow;
+GLRenderer* meshRenderer;
 Transform* rootObject;
-
-MeshRenderer* meshRenderer;
-
-GLfloat deltaTime = 0.0f;
-GLfloat lastTime = 0.0f;
-
-// Vertex Shader code
-static const char* vShader = "Shaders/shader.vert";
-
-// Fragment Shader
-static const char* fShader = "Shaders/shader.frag";
-
-void calcAverageNormals(unsigned int * indices, unsigned int indiceCount, GLfloat * vertices, unsigned int verticeCount,
-	unsigned int vLength, unsigned int normalOffset)
-{
-	for (size_t i = 0; i < indiceCount; i += 3)
-	{
-		unsigned int in0 = indices[i] * vLength;
-		unsigned int in1 = indices[i + 1] * vLength;
-		unsigned int in2 = indices[i + 2] * vLength;
-		glm::vec3 v1(vertices[in1] - vertices[in0], vertices[in1 + 1] - vertices[in0 + 1], vertices[in1 + 2] - vertices[in0 + 2]);
-		glm::vec3 v2(vertices[in2] - vertices[in0], vertices[in2 + 1] - vertices[in0 + 1], vertices[in2 + 2] - vertices[in0 + 2]);
-		glm::vec3 normal = glm::cross(v1, v2);
-		normal = glm::normalize(normal);
-
-		in0 += normalOffset; in1 += normalOffset; in2 += normalOffset;
-		vertices[in0] += normal.x; vertices[in0 + 1] += normal.y; vertices[in0 + 2] += normal.z;
-		vertices[in1] += normal.x; vertices[in1 + 1] += normal.y; vertices[in1 + 2] += normal.z;
-		vertices[in2] += normal.x; vertices[in2 + 1] += normal.y; vertices[in2 + 2] += normal.z;
-	}
-
-	for (size_t i = 0; i < verticeCount / vLength; i++)
-	{
-		unsigned int nOffset = i * vLength + normalOffset;
-		glm::vec3 vec(vertices[nOffset], vertices[nOffset + 1], vertices[nOffset + 2]);
-		vec = glm::normalize(vec);
-		vertices[nOffset] = vec.x; vertices[nOffset + 1] = vec.y; vertices[nOffset + 2] = vec.z;
-	}
-}
-
-void CreateObjects(Transform* parent)
-{
-	unsigned int indices[] = {
-		0, 3, 1,
-		1, 3, 2,
-		2, 3, 0,
-		0, 1, 2
-	};
-	GLfloat vertices[] = {
-		//	x      y      z			u	  v			nx	  ny    nz
-		-1.0f, -1.0f, -0.6f,		0.0f, 0.0f,		0.0f, 0.0f, 0.0f,
-		0.0f, -1.0f, 1.0f,		0.5f, 0.0f,		0.0f, 0.0f, 0.0f,
-		1.0f, -1.0f, -0.6f,		1.0f, 0.0f,		0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,		0.5f, 1.0f,		0.0f, 0.0f, 0.0f
-	};
-
-	calcAverageNormals(indices, 12, vertices, 32, 8, 5);
-
-	MeshInfo *info = new MeshInfo(); info->vertices = vertices; info->indices = indices; info->numOfVertices = 32; info->numOfIndices = 12;
-	
-	Transform* meshChild = new Transform(parent);
-	meshChild->Translate(glm::vec3(0.0f, 3.0f, 5.0f));
-	Mesh *tri = new Mesh(meshChild, info);
-	tri->SetTexture(meshRenderer->GetTextures()[1]);
-	tri->Load();
-	meshRenderer->AddModels(tri);
-
-	unsigned int quadIndices[] = {
-		1, 2, 0,
-		3, 2, 1,
-
-		4, 6, 5,
-		5, 6, 7,
-
-		9, 10, 8, 
-		11, 10, 9,
-
-		12, 14, 13,
-		13, 14, 15,
-
-		17, 18, 16,
-		19, 18, 17,
-
-		20, 22, 21,
-		21, 22, 23
-	};
-	GLfloat quadVertices[] = {
-		// Side Front
-		1.0f, -1.0f, -1.0f,		0.0f, 0.0f,		-1.0f, 0.0f, 0.0f,
-		1.0f, -1.0f, 1.0f,		1.0f, 0.0f,		-1.0f, 0.0f, 0.0f,
-		1.0f, 1.0f, -1.0f,		0.0f, 1.0f,		-1.0f, 0.0f, 0.0f,
-		1.0f, 1.0f, 1.0f,		1.0f, 1.0f,		-1.0f, 0.0f, 0.0f,
-
-		// Side Back
-		-1.0f, -1.0f, -1.0f,	0.0f, 0.0f,		1.0f, 0.0f, 0.0f,
-		-1.0f, -1.0f, 1.0f,		1.0f, 0.0f,		1.0f, 0.0f, 0.0f,
-		-1.0f, 1.0f, -1.0f,		0.0f, 1.0f,		1.0f, 0.0f, 0.0f,
-		-1.0f, 1.0f, 1.0f,		1.0f, 1.0f,		1.0f, 0.0f, 0.0f,
-
-		// Side Right
-		1.0f, -1.0f, 1.0f,		0.0f, 0.0f,		0.0f, 0.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,		1.0f, 0.0f,		0.0f, 0.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,		0.0f, 1.0f,		0.0f, 0.0f, -1.0f,
-		-1.0f, 1.0f, 1.0f,		1.0f, 1.0f,		0.0f, 0.0f, -1.0f,
-
-		// Side Left
-		1.0f, -1.0f, -1.0f,		0.0f, 0.0f,		0.0f, 0.0f, 1.0f,
-		-1.0f, -1.0f, -1.0f,	1.0f, 0.0f,		0.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, -1.0f,		0.0f, 1.0f,		0.0f, 0.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,		1.0f, 1.0f,		0.0f, 0.0f, 1.0f,
-
-		// Side Up
-		1.0f, 1.0f, -1.0f,		0.0f, 0.0f,		0.0f, -1.0f, 0.0f,
-		1.0f, 1.0f, 1.0f,		1.0f, 0.0f,		0.0f, -1.0f, 0.0f,
-		-1.0f, 1.0f, -1.0f,		0.0f, 1.0f,		0.0f, -1.0f, 0.0f,
-		-1.0f, 1.0f, 1.0f,		1.0f, 1.0f,		0.0f, -1.0f, 0.0f,
-
-		// Side Down
-		1.0f, -1.0f, -1.0f,		0.0f, 0.0f,		0.0f, 1.0f, 0.0f,
-		1.0f, -1.0f, 1.0f,		1.0f, 0.0f,		0.0f, 1.0f, 0.0f,
-		-1.0f, -1.0f, -1.0f,	0.0f, 1.0f,		0.0f, 1.0f, 0.0f,
-		-1.0f, -1.0f, 1.0f,		1.0f, 1.0f,		0.0f, 1.0f, 0.0f
-	};
-
-	info = new MeshInfo(); info->vertices = quadVertices; info->indices = quadIndices; info->numOfVertices = 192; info->numOfIndices = 36;
-
-	Transform* meshChild2 = new Transform(parent);
-	meshChild2->Translate(glm::vec3(0.0f, 1.0f, 5.0f));
-	meshChild2->AddUpdatable(new RotatingObject(meshChild2, 0.0f, 1.0f, 0.0f));
-	Mesh *quad = new Mesh(meshChild2, info);
-	quad->SetTexture(meshRenderer->GetTextures()[1]);
-	quad->Load();
-	meshRenderer->AddModels(quad);
-
-	unsigned int floorIndices[] = {
-		1, 2, 0,
-		3, 2, 1
-	};
-	GLfloat floorVertices[] = {
-		-10.0f, 0.0f, -10.0f,	0.0f, 0.0f,		0.0f, -1.0f, 0.0f,
-		10.0f, 0.0f, -10.0f,	10.0f, 0.0f,	0.0f, -1.0f, 0.0f,
-		-10.0f, 0.0f, 10.0f,	0.0f, 10.0f,	0.0f, -1.0f, 0.0f,
-		10.0f, 0.0f, 10.0f,		10.0f, 10.0f,	0.0f, -1.0f, 0.0f
-	};
-
-	info = new MeshInfo(); info->vertices = floorVertices; info->indices = floorIndices; info->numOfVertices = 32; info->numOfIndices = 6;
-
-	Transform* meshChild3 = new Transform(parent);
-	meshChild3->Translate(glm::vec3(0.0f, 0.0f, 0.0f));
-	Mesh *floor = new Mesh(meshChild3, info);
-	floor->SetTexture(meshRenderer->GetTextures()[0]);
-	floor->Load();
-	meshRenderer->AddModels(floor);
-}
-
-void CreateShaders() {
-	Shader* shader1 = new Shader();
-	shader1->CreateFromFiles(vShader, fShader);
-	meshRenderer->AddShader(shader1);
-}
 
 int main() {
 	glWindow = new GLWindow(1600, 900);
 	glWindow->Initialize();
 
 	rootObject = new Transform();
-	rootObject->Translate(glm::vec3(0.0f, 0.0f, 0.0f));
+	meshRenderer = new GLRenderer();
+	SceneLoader::Load("", meshRenderer, rootObject);
 
 	/*
 	---------------------------------
 		START SECTION TO BE MOVED
 	---------------------------------
 	*/
-	meshRenderer = new MeshRenderer();
-	meshRenderer->SetDirectionalLight(new DirectionalLight(0.0f, -0.5f, 1.0f, 
-															0.4f, 1.0f, 1.0f, 1.0f, 0.4f, 1.0f, 1.0f, 1.0f));
-	meshRenderer->AddPointLight(new PointLight(0.0f, 1.0f, 3.0f, 0.3f, 0.2f, 0.1f, 
-												0.7f, 0.0f, 1.0f, 0.0f, 0.7f, 0.0f, 1.0f, 0.0f));
-	meshRenderer->AddTexture("Textures/brick.png");
-	meshRenderer->AddTexture("Textures/dirt.png");
+	Transform *xwingTransform = new Transform(rootObject);
+	xwingTransform->Translate(glm::vec3(-15.0f, 0.0f, 15.0f));
+	xwingTransform->Scale(0.01f);
+	meshRenderer->AddMeshRenderer(new MeshRenderer(xwingTransform, 0));
+
+	Transform *blackhawkTransform = new Transform(rootObject);
+	blackhawkTransform->Scale(0.5f);
+	blackhawkTransform->Translate(glm::vec3(5.0f, 5.0f, 0.0f));
+	blackhawkTransform->Rotate(-1.57f, 0.0f, 0.0f);
+	meshRenderer->AddMeshRenderer(new MeshRenderer(blackhawkTransform, 1));
+
+	Transform *tree01Transform = new Transform(rootObject);
+	tree01Transform->Translate(glm::vec3(-5.0f, 0.0f, 0.0f));
+	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform, 2));
+	Transform *tree01Transform2 = new Transform(rootObject);
+	tree01Transform2->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
+	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform2, 2));
+
+	Transform *tree02Transform = new Transform(rootObject);
+	meshRenderer->AddMeshRenderer(new MeshRenderer(tree02Transform, 3));
 	
-	CreateShaders();
-	CreateObjects(rootObject);
-	
-	Transform object(rootObject);
-	object.AddUpdatable(Camera::CreateInstance(&object, glWindow));
-	object.AddUpdatable(new CameraController(&object, Camera::GetInstance(), 5.0f, 5.0f));
+	// Camera object is not static
+	Transform *object = new Transform(rootObject);
+	object->SetStatic(false);
+	object->Translate(glm::vec3(0.0f, 5.0f, -5.0f));
+	object->AddUpdatable(Camera::CreateInstance(object, glWindow));
+	object->AddUpdatable(new CameraController(object, Camera::GetInstance(), 5.0f, 5.0f));
 	
 	if (Camera::GetInstance() == NULL) {
 		printf("Camera has not been setup");
@@ -235,6 +86,7 @@ int main() {
 	// Loop until window closed
 	while (!glWindow->GetShouldClose()) {
 		Time::Update();
+		Input::NewFrame();
 
 		// Get + Handle user input events
 		glfwPollEvents();
@@ -245,15 +97,16 @@ int main() {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		meshRenderer->Render();
+		meshRenderer->Render(R_ALL);
 
 		glUseProgram(0);
 
 		glWindow->SwapBuffers();
 	}
 
-	delete meshRenderer;
 	delete ErrorShader::GetInstance();
+	delete meshRenderer;
+	delete rootObject;
 	delete glWindow;
 
 	return 0;

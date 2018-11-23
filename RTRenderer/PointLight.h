@@ -5,16 +5,15 @@
 
 #include "Light.h"
 
-class PointLight : Light
+class PointLight : protected Light
 {
-private:
-	glm::vec3 position;
+protected:
 	GLfloat constant;
 	GLfloat linear;
 	GLfloat exponent;
 public:
-	PointLight();
-	PointLight(GLfloat xPosition, GLfloat yPosition, GLfloat zPosition, GLfloat constant, GLfloat linear, GLfloat exponent, GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue);
+	PointLight(Transform* transform);
+	PointLight(Transform* transform, GLfloat constant, GLfloat linear, GLfloat exponent, GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue);
 
 	void UseLight(GLuint positionLocation, GLuint constantLocation, GLuint linearLocation, GLuint exponentLocation, GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation);
 

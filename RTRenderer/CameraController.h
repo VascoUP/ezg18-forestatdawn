@@ -1,10 +1,10 @@
 #pragma once
 
+#include "AObjectBehavior.h"
 #include "Transform.h"
-#include "ObjectBehavior.h"
 #include "Camera.h"
 
-class CameraController : public ObjectBehavior
+class CameraController : public AObjectBehavior
 {
 private:
 	Camera * camera;

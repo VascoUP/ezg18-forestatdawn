@@ -7,69 +7,98 @@
 #include <GL\glew.h>
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm\gtc\type_ptr.hpp>
+#include <glm\gtx\quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
-#include "Updatable.h"
+#include "IUpdatable.h"
 
-class Transform : public Updatable
+class Transform : public IUpdatable
 {
 private:
 	static int NEXT_ID;
 	const int OBJECT_ID = NEXT_ID++;
 
-	//! Parent transform. Can be null
-	Transform* parent;
+	bool m_static = true;
 
-
-	bool active = true;
-	std::vector<Updatable*> updatables;
-
+	//! List of all object behaviours
+	std::vector<IUpdatable*> m_updatables;
 	//! List of all children.
-	std::vector<Transform*> children;
+	std::vector<Transform*> m_children;
 
 	//!	Transformation matrix from individual coordinates to model coordinates
-	glm::mat4 localTransformation;
+	glm::mat4 m_localMatrix;
 	//!	Transformation matrix from model coordinates to world coordinates
-	glm::mat4 worldTransformation;
+	glm::mat4 m_worldMatrix;
 
 	//!	Local position of the object
-	glm::vec3 position;
+	glm::vec3 m_position;
 	//!	X is pitch, y is yaw and z is roll
-	glm::vec3 rotation;
+	GLfloat m_pitch;
+	GLfloat m_yaw;
+	GLfloat m_roll;
 	//!	Scale for each axis
-	glm::vec3 scale;
+	GLfloat m_scale;
 
 	//!	Front direction vector 
-	glm::vec3 front;
+	glm::vec3 m_front;
 	//!	Right direction vector
-	glm::vec3 right;
+	glm::vec3 m_right;
 	//!	Up direction vector
-	glm::vec3 up;
+	glm::vec3 m_up;
+
+	//! Quaternion
+	glm::quat m_quaternion;
+
+	void _NotifyTransformation();
 
 	/*!
-		\fn void Transform::UpdateRotationAxis()
+		\n void Transform::UpdateRotationAxis()
 
 		Updates the front, right and up direction vector according to the rotation vector
 
 		This function is called when the rotation vector is updated on the Rotate function.
 	*/
-	void UpdateRotationAxis();
+	void _UpdateRotationAxis();
+
+	/*!
+		\n void UpdateLocalMatrix()
+
+		Updates the local matrix so that at any given time that variable is consistent with the actual transformation
+	*/
+	void _UpdateLocalMatrix();
+
+	void _UpdateWolrdMatrix();
+
+	void _PropagateWorldMatrix();
+
+	/*!
+		\n void PropagateWorldMatrix(glm::mat4 parentWorldMatrix)
+
+		Updates the world matrix of itself and propagates it to it's children
+	*/
+	void _PropagateWorldMatrix(glm::mat4 parentWorldMatrix);
 
 	/*!
 		\n void Transform::InitializeVariables()
 
 		Initializes all variables to their default values
 	*/
-	void InitializeVariables();
+	void _InitializeVariables();
 
-	/*!
-		\n glm::mat4 Transform::CalculateRotationMatrix()
-	
-		Calculates the rotation matrix according to the pitch, yaw and roll 
-	*/
-	glm::mat3 CalculateRotationMatrix();
+
+	static void _SetChildrenDynamic(Transform* transform);
+
+	static bool _GetParentsAreStatic(Transform* transform);
 
 public:
+	//! Parent transform. Can be null
+	Transform* parent;
+
+	enum POINT_TYPE {
+		DIRECTION, POINT
+	};
+
 	/*!
 		\n Transform::Transform()
 
@@ -83,14 +112,28 @@ public:
 		Constructor: initializes all variables to their default value, except parent which is set to the value passed as a parameter
 	*/
 	Transform(Transform* parent);
-
-
-	glm::vec3 GetPosition() const;
-
-	glm::vec3 GetFront() const;
-
-	glm::vec3 GetUp() const;
 	
+
+	bool SetStatic(bool isStatic);
+
+	bool GetStatic() const;
+
+	glm::vec3 GetPosition();
+
+	glm::vec3 GetWorldPosition();
+
+	glm::vec3 GetFront();
+
+	glm::vec3 GetUp();
+
+	glm::vec3 GetWorldUp();
+	
+	glm::mat4 GetWorldMatrix() const;
+
+	glm::mat4 GetLocalMatrix() const;
+
+	glm::vec3 LocalToWorldCoordinates(glm::vec3 point, POINT_TYPE type);
+
 	std::vector<Transform*> GetChildren();
 
 	void AddChild(Transform* child);
@@ -99,10 +142,8 @@ public:
 	void SetUp();
 
 	void Update();
-
-	void SetActive(bool active);
-
-	void AddUpdatable(Updatable* updatable);
+	
+	void AddUpdatable(IUpdatable* updatable);
 
 
 	/*!
@@ -114,27 +155,19 @@ public:
 	void Translate(glm::vec3 translate);
 	/*!
 		\n void Transform::Scale(glm::vec3 scale)
-		\param glm::scale Scale amount for each axis
+		\param GLfloat scale Scale amount for each axis
 
 		Scales the object by a given amount
 	*/
-	void Scale(glm::vec3 scale);
+	void Scale(GLfloat scale);
 	/*!
 		\n void Transform::Rotate(float angle, glm::vec3 axis)
 		\param glm::vec3 axis The angles for each axis
 
 		Rotates the object arount itself by the given angles
 	*/
-	void Rotate(glm::vec3 axis);
-
-	/*!
-		\n glm::mat4 Transform::GetWorldTransform()
-
-		Returns the world trasnformation matrix.
-		Assumes the matrix is updated, so no operations are computed.
-	*/
-	glm::mat4 GetWorldTransform();
-
+	void Rotate(GLfloat pitch, GLfloat yaw, GLfloat roll);
+	
 	/*!
 		\n glm::mat4 Transform::TransformMatrix(bool doScale)
 		\param bool doScale Tells the function if it performes the scale operation or not

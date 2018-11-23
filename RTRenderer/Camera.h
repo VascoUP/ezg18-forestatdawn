@@ -6,13 +6,13 @@
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 
+#include "AObjectBehavior.h"
 #include "Transform.h"
-#include "ObjectBehavior.h"
 #include "Time.h"
 #include "Input.h"
 #include "GLWindow.h"
 
-class Camera: public ObjectBehavior
+class Camera: public AObjectBehavior
 {
 private:
 	static Camera* camera;

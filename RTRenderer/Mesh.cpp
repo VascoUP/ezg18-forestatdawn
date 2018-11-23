@@ -1,7 +1,7 @@
 #include "Mesh.h"
 
-Mesh::Mesh(Transform * object, MeshInfo * info)
-	: ObjectBehavior(object), Renderable(object)
+Mesh::Mesh(MeshInfo * info)
+	: IRenderable()
 {
 	meshInfo = info;
 

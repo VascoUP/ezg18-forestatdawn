@@ -2,9 +2,8 @@
 
 #include <GL\glew.h>
 
+#include "IRenderable.h"
 #include "Transform.h"
-#include "Updatable.h"
-#include "Renderable.h"
 #include "Shader.h"
 #include "Camera.h"
 #include "Texture.h"
@@ -17,7 +16,7 @@ struct MeshInfo {
 };
 
 //! This class holds the information required to draw a mesh onto a scene
-class Mesh: public Renderable, public ObjectBehavior
+class Mesh : public IRenderable 
 {
 private:
 	//! Vertex array
@@ -34,7 +33,7 @@ private:
 	MeshInfo* meshInfo;
 public:
 	//! Constructor
-	Mesh(Transform* object, MeshInfo* info);
+	Mesh(MeshInfo* info);
 
 	void SetTexture(Texture* tex);
 

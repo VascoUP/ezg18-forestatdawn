@@ -22,15 +22,6 @@ struct DirectionalLight
     vec3 direction;
 };
 
-struct SpotLight 
-{
-	Light light;
-	vec3 position;
-	vec3 direction;
-	float fallOffStart;
-	float fallOffEnd;
-};
-
 struct PointLight 
 {
 	Light light;
@@ -39,6 +30,14 @@ struct PointLight
 	float linear;
 	float exponent;
 };
+
+struct SpotLight 
+{
+	PointLight light;
+	vec3 direction;
+	float edge;
+};
+
 
 // --New lighting model
 struct FragParams {
@@ -98,7 +97,7 @@ vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 
 
     return outColor * vec4(matColor, 1.0f);
 }
-
+ 
 vec4 CalculateDirectionalLight(FragParams frag, vec3 matColor, float matShininess, DirectionalLight light) {
 	return CalculateLighting(frag, u_material.albedo, u_material.shininess, -u_directionalLight.direction, u_directionalLight.light);
 }
@@ -116,10 +115,29 @@ vec4 CalculatePointLight(FragParams frag, vec3 matColor, float matShininess, Poi
 	return plColor / attenuation;
 }
 
+
 vec4 CalculatePointLights(FragParams frag, vec3 matColor, float matShininess, PointLight lights[MAX_POINT_LIGHTS], int pointLightCount) {
 	vec4 plsColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	for(int i = 0; i < pointLightCount; i++) {
 		plsColor += CalculatePointLight(frag, matColor, matShininess, lights[i]);
+	}
+
+	return plsColor;
+}
+
+vec4 CalculateSpotLight(FragParams frag, vec3 matColor, float matShininess, float slFactor, SpotLight light) {
+	vec4 color = CalculatePointLight(frag, matColor, matShininess, light.light);
+	return color * (1.0f - (1.0f - slFactor) * (1.0f / (1.0f - light.edge)));
+}
+
+vec4 CalculateSpotLights(FragParams frag, vec3 matColor, float matShininess, SpotLight lights[MAX_POINT_LIGHTS], int spotLightCount) {
+	vec4 plsColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	for(int i = 0; i < spotLightCount; i++) {
+		vec3 rayDirection = normalize(frag.frag_Position - lights[i].light.position);
+		float slFactor = dot(rayDirection, lights[i].direction);
+		if(slFactor > lights[i].edge) {
+			plsColor += CalculateSpotLight(frag, matColor, matShininess, slFactor, lights[i]);
+		}
 	}
 
 	return plsColor;
@@ -134,7 +152,8 @@ void main()
 	
 	vec4 dlColor = CalculateDirectionalLight(frag, u_material.albedo, u_material.shininess, u_directionalLight);
 	vec4 plsColor = CalculatePointLights(frag, u_material.albedo, u_material.shininess, u_pointLights, u_pointLightsCount);
+	vec4 slsColor = CalculateSpotLights(frag, u_material.albedo, u_material.shininess, u_spotLights, u_spotLightsCount);
 	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0f);
 	
-	frag_color = texture(u_mainTexture, vert_mainTex) * clamp( dlColor + plsColor + aColor, 0.0f, 1.0f );
+	frag_color = texture(u_mainTexture, vert_mainTex) * clamp( dlColor + plsColor + slsColor + aColor, 0.0f, 1.0f );
 }

@@ -49,7 +49,7 @@ void GLRenderer::AddMeshRenderer(MeshRenderer * meshRenderer)
 void GLRenderer::AddTexture(const char* texLocation)
 {
 	Texture* tex = new Texture(texLocation);
-	tex->LoadTextureA();
+	tex->LoadTexture();
 	m_textures.push_back(tex);
 }
 

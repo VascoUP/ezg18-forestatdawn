@@ -43,26 +43,21 @@ int main() {
 		START SECTION TO BE MOVED
 	---------------------------------
 	*/
-	Transform *xwingTransform = new Transform(rootObject);
-	xwingTransform->Translate(glm::vec3(-15.0f, 0.0f, 15.0f));
-	xwingTransform->Scale(0.01f);
-	meshRenderer->AddMeshRenderer(new MeshRenderer(xwingTransform, 0));
-
 	Transform *blackhawkTransform = new Transform(rootObject);
 	blackhawkTransform->Scale(0.5f);
 	blackhawkTransform->Translate(glm::vec3(5.0f, 5.0f, 0.0f));
 	blackhawkTransform->Rotate(-1.57f, 0.0f, 0.0f);
-	meshRenderer->AddMeshRenderer(new MeshRenderer(blackhawkTransform, 1));
+	meshRenderer->AddMeshRenderer(new MeshRenderer(blackhawkTransform, 0));
 
 	Transform *tree01Transform = new Transform(rootObject);
 	tree01Transform->Translate(glm::vec3(-5.0f, 0.0f, 0.0f));
-	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform, 2));
+	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform, 1));
 	Transform *tree01Transform2 = new Transform(rootObject);
 	tree01Transform2->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
-	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform2, 2));
+	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform2, 1));
 
 	Transform *tree02Transform = new Transform(rootObject);
-	meshRenderer->AddMeshRenderer(new MeshRenderer(tree02Transform, 3));
+	meshRenderer->AddMeshRenderer(new MeshRenderer(tree02Transform, 2));
 	
 	// Camera object is not static
 	Transform *object = new Transform(rootObject);

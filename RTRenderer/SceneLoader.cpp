@@ -139,10 +139,9 @@ void LoadTransforms(nlohmann::json transform, GLRenderer * meshRenderer, Transfo
 
 }
 
-void SceneLoader::Load(const char* filename, GLRenderer * meshRenderer, Transform * rootObject) {
-	// Todo: Read file
+std::string SimulateJSONObject() {
 	nlohmann::json simulateScene;
-	simulateScene["ambient"] = 0.1f;
+	simulateScene["ambient"] = 0.05f;
 
 	nlohmann::json simulateDLight;
 	simulateDLight["diffintensity"] = 0.6f;
@@ -196,15 +195,20 @@ void SceneLoader::Load(const char* filename, GLRenderer * meshRenderer, Transfor
 
 	simulateScene["lights"] = simulateLights;
 
-	simulateScene["models"] = { "Models/x-wing.obj", "Models/uh60.obj", "Models/Tree.obj", "Models/Tree_02.obj" };
+	simulateScene["models"] = { "Models/uh60.obj", "Models/Tree.obj", "Models/Tree_02.obj" };
 
 	nlohmann::json simulatedShader;
 	simulatedShader["shader_0"]["vertex"] = "Shaders/shader.vert";
 	simulatedShader["shader_0"]["fragment"] = "Shaders/shader.frag";
-	
+
 	simulateScene["shaders"] = simulatedShader;
 
-	std::string fileText = simulateScene.dump();
+	return simulateScene.dump();
+}
+
+void SceneLoader::Load(const char* filename, GLRenderer * meshRenderer, Transform * rootObject) {
+	// Todo: Read from file
+	std::string fileText = SimulateJSONObject();
 
 	nlohmann::json sceneDescription = nlohmann::json::parse(fileText);
 	float ambientIntensity = sceneDescription[AMBIENT_KEY];

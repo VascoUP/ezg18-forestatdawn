@@ -2,8 +2,8 @@
 
 GLRenderer::GLRenderer()
 {
-	m_material = new Material(0.8f, 256, 1.0f, 0.5f, 0.5f);
-	m_ambientIntensity = 0.3f;
+	m_material = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
+	m_ambientIntensity = 0.1f;
 	m_pointLightsCount = 0;
 }
 

@@ -25,6 +25,7 @@
 #include "CameraController.h"
 #include "RotationObjects.h"
 #include "ObjectController.h"
+#include "TerrainMesh.h"
 
 GLWindow* glWindow;
 GLRenderer* meshRenderer;
@@ -37,6 +38,10 @@ int main() {
 	rootObject = new Transform();
 	meshRenderer = new GLRenderer();
 	SceneLoader::Load("", meshRenderer, rootObject);
+
+	TerrainMesh* terrain = new TerrainMesh();
+	terrain->Load();
+	meshRenderer->AddModels(terrain);
 
 	/*
 	---------------------------------
@@ -52,13 +57,17 @@ int main() {
 	Transform *tree01Transform = new Transform(rootObject);
 	tree01Transform->Translate(glm::vec3(-5.0f, 0.0f, 0.0f));
 	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform, 1));
+
 	Transform *tree01Transform2 = new Transform(rootObject);
 	tree01Transform2->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
 	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform2, 1));
 
 	Transform *tree02Transform = new Transform(rootObject);
 	meshRenderer->AddMeshRenderer(new MeshRenderer(tree02Transform, 2));
-	
+
+	Transform *terrainTransform = new Transform(rootObject);
+	meshRenderer->AddMeshRenderer(new MeshRenderer(terrainTransform, terrain->GetIndex()));
+		
 	// Camera object is not static
 	Transform *object = new Transform(rootObject);
 	object->SetStatic(false);

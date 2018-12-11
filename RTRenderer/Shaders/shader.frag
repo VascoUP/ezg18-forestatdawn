@@ -66,7 +66,6 @@ uniform int u_pointLightsCount = 0;
 uniform SpotLight u_spotLights[MAX_SPOT_LIGHTS];
 uniform int u_spotLightsCount = 0;
 
-
 float CalculateAttenuation(float dist, float falloffStart, float falloffEnd)
 {
 	float attenuation = (falloffEnd - dist) / (falloffEnd - falloffStart);
@@ -145,6 +144,10 @@ vec4 CalculateSpotLights(FragParams frag, vec3 matColor, float matShininess, Spo
 
 void main()
 {
+	vec4 textColor = texture(u_mainTexture, vert_mainTex);
+	if(textColor.a <= 0.5f)
+		discard;
+
 	FragParams frag;
 	frag.frag_Position = vert_pos;
 	frag.frag_Normal = -vert_normal;
@@ -155,5 +158,5 @@ void main()
 	vec4 slsColor = CalculateSpotLights(frag, u_material.albedo, u_material.shininess, u_spotLights, u_spotLightsCount);
 	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0f);
 	
-	frag_color = texture(u_mainTexture, vert_mainTex) * clamp( dlColor + plsColor + slsColor + aColor, 0.0f, 1.0f );
+	frag_color = textColor * clamp( dlColor + plsColor + slsColor + aColor, 0.0f, 1.0f );
 }

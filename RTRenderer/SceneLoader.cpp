@@ -265,5 +265,71 @@ void SceneLoader::Load(const char* filename, GLRenderer * meshRenderer, Transfor
 }
 
 void SceneLoader::Store(const char* filename, GLRenderer * meshRenderer, Transform * transform) {
+	nlohmann::json simulateScene;
+	simulateScene["ambient"] = meshRenderer->GetAmbient();
+
+	DirectionalLight* dLight = meshRenderer->GetDirectionalLight();
+	nlohmann::json simulateDLight;
+	simulateDLight["diffintensity"] = dLight->GetDiffuseIntensity();
+	simulateDLight["specintensity"] = dLight->GetSpecularIntensity();
+	glm::vec3 tmpVec3 = dLight->GetDiffuseColor();
+	simulateDLight["diffcolor"]["red"] = tmpVec3.r;
+	simulateDLight["diffcolor"]["green"] = tmpVec3.g;
+	simulateDLight["diffcolor"]["blue"] = tmpVec3.b;
+	tmpVec3 = dLight->GetSpecularColor();
+	simulateDLight["speccolor"]["red"] = tmpVec3.r;
+	simulateDLight["speccolor"]["green"] = tmpVec3.g;
+	simulateDLight["speccolor"]["blue"] = tmpVec3.b;
+	tmpVec3 = dLight->GetTransform()->GetRotation();
+	simulateDLight["rotation"]["x"] = tmpVec3.x;
+	simulateDLight["rotation"]["y"] = tmpVec3.y;
+	simulateDLight["rotation"]["z"] = tmpVec3.z;
+
+	nlohmann::json simulatePLight0;
+	simulatePLight0["diffintensity"] = 0.7f;
+	simulatePLight0["specintensity"] = 0.7f;
+	simulatePLight0["diffcolor"]["red"] = 0.0f;
+	simulatePLight0["diffcolor"]["green"] = 1.0f;
+	simulatePLight0["diffcolor"]["blue"] = 0.0f;
+	simulatePLight0["speccolor"]["red"] = 1.0f;
+	simulatePLight0["speccolor"]["green"] = 0.0f;
+	simulatePLight0["speccolor"]["blue"] = 0.0f;
+	simulatePLight0["translation"]["x"] = 0.0f;
+	simulatePLight0["translation"]["y"] = 1.0f;
+	simulatePLight0["translation"]["z"] = 0.0f;
+	simulatePLight0["constant"] = 0.3f;
+	simulatePLight0["linear"] = 0.2f;
+	simulatePLight0["exponent"] = 0.1f;
+
+	nlohmann::json simulatePLight1;
+	simulatePLight1["diffintensity"] = 0.7f;
+	simulatePLight1["specintensity"] = 0.7f;
+	simulatePLight1["diffcolor"]["red"] = 1.0f;
+	simulatePLight1["diffcolor"]["green"] = 1.0f;
+	simulatePLight1["diffcolor"]["blue"] = 1.0f;
+	simulatePLight1["speccolor"]["red"] = 1.0f;
+	simulatePLight1["speccolor"]["green"] = 1.0f;
+	simulatePLight1["speccolor"]["blue"] = 1.0f;
+	simulatePLight1["translation"]["x"] = 2.0f;
+	simulatePLight1["translation"]["y"] = 1.0f;
+	simulatePLight1["translation"]["z"] = 4.0f;
+	simulatePLight1["constant"] = 0.1f;
+	simulatePLight1["linear"] = 0.05f;
+	simulatePLight1["exponent"] = 0.02f;
+
+	nlohmann::json simulateLights;
+	simulateLights["dlight"] = simulateDLight;
+	simulateLights["plights"]["plight_0"] = simulatePLight0;
+	simulateLights["plights"]["plight_1"] = simulatePLight1;
+
+	simulateScene["lights"] = simulateLights;
+
+	simulateScene["models"] = { "Models/uh60.obj", "Models/Tree.obj", "Models/Tree_02.obj" };
+
+	nlohmann::json simulatedShader;
+	simulatedShader["shader_0"]["vertex"] = "Shaders/shader.vert";
+	simulatedShader["shader_0"]["fragment"] = "Shaders/shader.frag";
+
+	simulateScene["shaders"] = simulatedShader;
 
 }

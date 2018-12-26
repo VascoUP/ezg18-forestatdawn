@@ -22,6 +22,31 @@ Light::Light(Transform * transform, GLfloat diffIntensity, GLfloat diffRed, GLfl
 	specularIntensity = specIntensity;
 }
 
+Transform * Light::GetTransform() const
+{
+	return transform;
+}
+
+GLfloat Light::GetDiffuseIntensity() const
+{
+	return diffuseIntensity;
+}
+
+glm::vec3 Light::GetDiffuseColor() const
+{
+	return diffuseColor;
+}
+
+GLfloat Light::GetSpecularIntensity() const
+{
+	return specularIntensity;
+}
+
+glm::vec3 Light::GetSpecularColor() const
+{
+	return specularColor;
+}
+
 void Light::UseLight(GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation)
 {
 	glUniform3f(diffuseColorLocation, diffuseColor.r, diffuseColor.g, diffuseColor.b);

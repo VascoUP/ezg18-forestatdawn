@@ -16,6 +16,21 @@ PointLight::PointLight(Transform* transform, GLfloat constant, GLfloat linear, G
 	this->exponent = exponent;
 }
 
+GLfloat PointLight::GetConstant() const
+{
+	return constant;
+}
+
+GLfloat PointLight::GetLinear() const
+{
+	return linear;
+}
+
+GLfloat PointLight::GetExponent() const
+{
+	return exponent;
+}
+
 void PointLight::UseLight(GLuint positionLocation, GLuint constantLocation, GLuint linearLocation, GLuint exponentLocation, GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation)
 {
 	glm::vec3 pos = transform->LocalToWorldCoordinates(transform->GetPosition(), Transform::POINT_TYPE::POINT);

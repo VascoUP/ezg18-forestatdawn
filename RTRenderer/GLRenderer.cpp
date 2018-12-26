@@ -12,9 +12,19 @@ std::vector<Texture*> GLRenderer::GetTextures()
 	return m_textures;
 }
 
+GLfloat GLRenderer::GetAmbient()
+{
+	return m_ambientIntensity;
+}
+
 void GLRenderer::SetAmbient(GLfloat intensity)
 {
 	m_ambientIntensity = intensity;
+}
+
+DirectionalLight * GLRenderer::GetDirectionalLight()
+{
+	return m_directionalLight;
 }
 
 void GLRenderer::SetDirectionalLight(DirectionalLight * light)

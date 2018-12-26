@@ -37,7 +37,9 @@ public:
 	GLRenderer();
 
 	std::vector<Texture*> GetTextures();
+	GLfloat GetAmbient();
 	void SetAmbient(GLfloat intensity);
+	DirectionalLight* GetDirectionalLight();
 	void SetDirectionalLight(DirectionalLight* light);
 	void AddPointLight(PointLight* light);
 	void AddSpotLight(SpotLight* light);

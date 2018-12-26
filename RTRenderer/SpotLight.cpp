@@ -3,7 +3,6 @@
 SpotLight::SpotLight(Transform* transform)
 	: PointLight(transform)
 {
-	direction = glm::vec3(0.0f, 0.0f, 0.0f);
 	edge = 0;
 	procEdge = 0;
 }
@@ -14,9 +13,18 @@ SpotLight::SpotLight(Transform* transform, GLfloat edge,
 	GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
 	: PointLight(transform, constant, linear, exponent, diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue)
 {
-	direction = glm::vec3(0.0f, 0.0f, 0.0f);
 	this->edge = edge;
 	procEdge = edge;
+}
+
+GLfloat SpotLight::GetEdge() const
+{
+	return edge;
+}
+
+GLfloat SpotLight::GetProcEdge() const
+{
+	return procEdge;
 }
 
 void SpotLight::UseLight(GLuint directionLocation, GLuint edgeLocation, 

@@ -63,6 +63,11 @@ bool Transform::GetStatic() const
 
 glm::vec3 Transform::GetPosition() { return m_position; }
 
+glm::vec3 Transform::GetRotation() const
+{
+	return glm::vec3(m_pitch, m_yaw, m_roll);
+}
+
 glm::vec3 Transform::GetWorldPosition()
 {
 	glm::mat4 lMat = glm::mat4();

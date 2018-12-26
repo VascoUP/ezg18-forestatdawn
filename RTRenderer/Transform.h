@@ -120,6 +120,8 @@ public:
 
 	glm::vec3 GetPosition();
 
+	glm::vec3 GetRotation() const;
+
 	glm::vec3 GetWorldPosition();
 
 	glm::vec3 GetFront();

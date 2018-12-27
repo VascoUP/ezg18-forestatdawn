@@ -59,7 +59,8 @@ private:
 		GLuint uniformDirection;
 	} uniformDirectionalLight;
 	GLuint uniformDirectionalLightTransform;
-	GLuint uniformDirectionalSM;
+	GLuint uniformDirectionalStaticSM;
+	GLuint uniformDirectionalDynamicSM;
 
 	// -- Point Lights --
 	int pointLightCount;
@@ -129,7 +130,8 @@ public:
 	void SetSpotLights(SpotLight** sLight, unsigned int lightCount);
 	void SetMaterial(Material* mat);
 	void SetTexutre(GLuint textureUnit);
-	void SetDirectionalSM(GLuint textureUnit);
+	void SetDirectionalStaticSM(GLuint textureUnit);
+	void SetDirectionalDynamicSM(GLuint textureUnit);
 	void SetDirectionalLightTransform(glm::mat4* lTransform);
 
 

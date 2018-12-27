@@ -216,6 +216,16 @@ glm::mat4 Transform::TransformMatrix(bool doScale) {
 }
 
 
+bool Transform::AreChildrenDynamic() {
+	if (!m_static)
+		return true;
+	for (size_t i = 0; i < m_children.size(); i++) {
+		if (!m_children[i]->AreChildrenDynamic())
+			return true;
+	}
+	return false;
+}
+
 Transform::~Transform()
 {
 	for (size_t i = 0; i < m_updatables.size(); i++) {

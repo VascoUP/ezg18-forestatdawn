@@ -49,11 +49,13 @@ public:
 	void AddMeshRenderer(MeshRenderer* meshRenderer);
 	void AddTexture(const char* texLocation);
 	void AddShader(Shader* shader);
-	void Render(GLWindow* glWindow, RenderFilter filter);
+	void Render(GLWindow* glWindow, Transform* root, RenderFilter filter);
+	void BakeShadowMaps(GLWindow* glWindow);
 
 	~GLRenderer();
 
 private:
+	bool DynamicMeshes();
 	void RenderScene(RenderFilter filter, GLuint uniformModel);
 	void DirectionalSMPass(RenderFilter filter);
 	void RenderPass(RenderFilter filter);

@@ -18,7 +18,7 @@ Shader::Shader()
 	uniformDirectionalLight.uniformSpecularFactor = 0;
 	uniformDirectionalLight.uniformDirection = 0;
 	uniformDirectionalLightTransform = 0;
-	uniformDirectionalSM = 0;
+	uniformDirectionalStaticSM = 0;
 	uniformMaterial.uniformSpecularIntensity = 0;
 	uniformMaterial.uniformShininess = 0;
 	uniformMaterial.uniformAlbedo = 0;
@@ -107,7 +107,8 @@ bool Shader::CreateFromString(const char* vertexCode, const char* fragmentCode) 
 
 		uniformTexture = glGetUniformLocation(shaderID, "u_mainTexture");
 		uniformDirectionalLightTransform = glGetUniformLocation(shaderID, "u_directionalLightTransform");
-		uniformDirectionalSM = glGetUniformLocation(shaderID, "u_directionalSM");
+		uniformDirectionalStaticSM = glGetUniformLocation(shaderID, "u_directionalStaticSM");
+		uniformDirectionalDynamicSM = glGetUniformLocation(shaderID, "u_directionalDynamicSM");
 	}
 
 	return success;
@@ -210,9 +211,14 @@ void Shader::SetTexutre(GLuint textureUnit)
 	glUniform1i(uniformTexture, textureUnit);
 }
 
-void Shader::SetDirectionalSM(GLuint textureUnit)
+void Shader::SetDirectionalStaticSM(GLuint textureUnit)
 {
-	glUniform1i(uniformDirectionalSM, textureUnit);
+	glUniform1i(uniformDirectionalStaticSM, textureUnit);
+}
+
+void Shader::SetDirectionalDynamicSM(GLuint textureUnit)
+{
+	glUniform1i(uniformDirectionalDynamicSM, textureUnit);
 }
 
 void Shader::SetDirectionalLightTransform(glm::mat4 * lTransform)

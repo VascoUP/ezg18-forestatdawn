@@ -21,6 +21,9 @@ void GLCinematicProgram::Run()
 
 	mRoot->SetUp();
 
+	// TODO: Calculate static shadow maps
+	mRenderer->BakeShadowMaps(mWindow);
+
 	// Loop until window closed
 	while (!mWindow->GetShouldClose()) {
 		Time::Update();
@@ -30,7 +33,7 @@ void GLCinematicProgram::Run()
 		// Update all objects
 		mRoot->Update();
 		// Render scene
-		mRenderer->Render(mWindow, R_ALL);
+		mRenderer->Render(mWindow, mRoot, R_ALL);
 		// Set shader to be default
 		glUseProgram(0);
 
@@ -61,6 +64,9 @@ void GLRoamProgram::Run()
 
 	mRoot->SetUp();
 
+	// TODO: Calculate static shadow maps
+	mRenderer->BakeShadowMaps(mWindow);
+
 	// Loop until window closed
 	while (!mWindow->GetShouldClose()) {
 		Time::Update();
@@ -75,7 +81,7 @@ void GLRoamProgram::Run()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		mRenderer->Render(mWindow, R_ALL);
+		mRenderer->Render(mWindow, mRoot, R_ALL);
 
 		glUseProgram(0);
 
@@ -86,18 +92,6 @@ void GLRoamProgram::Run()
 	delete mRenderer;
 	delete mRoot;
 	delete mWindow;
-}
-
-GLBakeProgram::GLBakeProgram()
-	: GLProgram(RenderMode::BAKING) {}
-
-void GLBakeProgram::Run()
-{
-	if (mError) {
-		return;
-	}
-
-	printf("TODO: Bake the static shadow maps");
 }
 
 
@@ -121,8 +115,6 @@ GLProgram* GLProgram::CreateGLProgramInstance(RenderMode mode)
 		return new GLCinematicProgram();
 	case ROAM:
 		return new GLRoamProgram();
-	case BAKING:
-		return new GLBakeProgram();
 	}
 	return nullptr;
 }

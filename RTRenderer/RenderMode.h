@@ -5,8 +5,6 @@ enum RenderMode {
 	CINEMATIC,
 	// User is allowed to control the camera
 	ROAM,
-	// Bakes static light maps
-	BAKING,
 	// Undefined mode - doesn't run
 	UNDEFINED
 };

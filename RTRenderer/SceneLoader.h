@@ -10,6 +10,8 @@
 #include "GLWindow.h"
 #include "TerrainMesh.h"
 #include "CameraController.h"
+#include "ObjectController.h"
+
 
 class SceneLoader
 {

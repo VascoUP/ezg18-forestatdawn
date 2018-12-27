@@ -9,10 +9,14 @@ DirectionalLight::DirectionalLight(Transform* transform)
 
 DirectionalLight::DirectionalLight(
 	Transform* transform,
-	GLfloat shadowWidth, GLfloat shadowHeight,
+	GLfloat staticShadowWidth, GLfloat staticShadowHeight,
+	GLfloat dynamicShadowWidth, GLfloat dynamicShadowHeight,
 	GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, 
 	GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
-	: Light(transform, shadowWidth, shadowHeight,diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue)
+	: Light(transform, 
+		staticShadowWidth, staticShadowHeight,
+		dynamicShadowWidth, dynamicShadowHeight, 
+		diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue)
 {
 	GLfloat zFar = 40.0f;
 	GLfloat zNear = 0.1f;

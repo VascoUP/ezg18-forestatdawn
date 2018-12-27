@@ -4,7 +4,7 @@ const int MAX_POINT_LIGHTS = 3;
 const int MAX_SPOT_LIGHTS = 3;
 
 enum RenderFilter {
-	R_STATIC, R_NSTATIC, R_ALL
+	R_STATIC, R_DYNAMIC, R_ALL
 };
 
 class Commons {

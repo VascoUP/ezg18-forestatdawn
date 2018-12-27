@@ -23,8 +23,6 @@ int main() {
 			mode = RenderMode::CINEMATIC;
 		else if (inputStr[0] == '2')
 			mode = RenderMode::ROAM;
-		else if (inputStr[0] == '3')
-			mode = RenderMode::BAKING;
 	}
 
 	GLProgram* program = GLProgram::CreateGLProgramInstance(mode);

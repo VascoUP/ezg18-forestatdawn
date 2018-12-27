@@ -178,6 +178,8 @@ public:
 	*/
 	glm::mat4 TransformMatrix(bool doScale);
 
+	bool AreChildrenDynamic();
+
 	/*!
 		\n Transform::~Transform()
 

@@ -57,7 +57,8 @@ struct Material {
 };
 
 uniform sampler2D u_mainTexture;
-uniform sampler2D u_directionalSM;
+uniform sampler2D u_directionalStaticSM;
+uniform sampler2D u_directionalDynamicSM;
 
 uniform	Material u_material;
 uniform vec3 u_cameraPosition;
@@ -83,22 +84,26 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 
 	float bias = max(0.01 * (1.0 - dot(normal, lightDir)), 0.005);
 
-	float shadow = 0.0;//currentDepth > closestDepth ? 1.0 : 0.0;
+	float s_shadow = 0.0;//currentDepth > closestDepth ? 1.0 : 0.0;
+	float d_shadow = 0.0;//currentDepth > closestDepth ? 1.0 : 0.0;
 
-	vec2 texelSize = 1.0 / textureSize(u_directionalSM, 0);
+	vec2 s_texelSize = 1.0 / textureSize(u_directionalStaticSM, 0);
+	vec2 d_texelSize = 1.0 / textureSize(u_directionalDynamicSM, 0);
 	for(int x = -1; x < 1; x++) {
 		for(int y = -1; y < 1; y++) {
-			float pcfDepth = texture(u_directionalSM, projCoords.xy + vec2(x, y) * texelSize).x;
-			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+			float s_pcfDepth = texture(u_directionalStaticSM, projCoords.xy + vec2(x, y) * s_texelSize).x;
+			float d_pcfDepth = texture(u_directionalDynamicSM, projCoords.xy + vec2(x, y) * d_texelSize).x;
+			s_shadow += currentDepth - bias > s_pcfDepth ? 1.0 : 0.0;
+			d_shadow += currentDepth - bias > d_pcfDepth ? 1.0 : 0.0;
 		}
 	}
-	shadow /= 9.0;
+	s_shadow = max(s_shadow, d_shadow) / 9.0;
 
 	if(projCoords.z > 1.0) {
-		shadow = 0.0;
+		s_shadow = 0.0;
 	}
 
-	return shadow;
+	return s_shadow;
 }
 
 float CalculateAttenuation(float dist, float falloffStart, float falloffEnd)

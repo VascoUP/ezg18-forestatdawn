@@ -9,7 +9,7 @@ MeshRenderer::MeshRenderer(Transform *transform, int modelIndex)
 bool MeshRenderer::FilterPass(RenderFilter filter)
 {
 	return (filter == R_ALL || 
-		(filter == R_NSTATIC && !m_transform->GetStatic()) ||
+		(filter == R_DYNAMIC && !m_transform->GetStatic()) ||
 		(filter == R_STATIC && m_transform->GetStatic()));
 }
 

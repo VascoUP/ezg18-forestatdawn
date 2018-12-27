@@ -13,7 +13,12 @@ void ObjectController::SetUp() {
 
 void ObjectController::Update() {
 	GLfloat velocity = moveSpeed * Time::GetDeltaTime();
-	if (Input::IsKeyPress(GLFW_KEY_W)) {
+	GLfloat angularVelocity = rotSpeed * Time::GetDeltaTime();
+
+	this->transform->Translate(glm::vec3(0.0f, velocity, 0.0f));
+	this->transform->Rotate(0.0f, angularVelocity, 0.0f);
+
+	/*if (Input::IsKeyPress(GLFW_KEY_W)) {
 		this->transform->Translate(glm::vec3(0.0f, 0.0f, velocity));
 	}
 	if (Input::IsKeyPress(GLFW_KEY_S)) {
@@ -36,7 +41,7 @@ void ObjectController::Update() {
 	}
 	if (Input::IsKeyPress(GLFW_KEY_L)) {
 		this->transform->Rotate(velocity, 0.0f, 0.0f);
-	}
+	}*/
 }
 
 ObjectController::~ObjectController()

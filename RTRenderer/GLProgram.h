@@ -40,11 +40,3 @@ class GLRoamProgram : public GLProgram {
 public:
 	void Run();
 };
-
-class GLBakeProgram : public GLProgram {
-	friend class GLProgram;
-
-	GLBakeProgram();
-public:
-	void Run();
-};

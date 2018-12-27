@@ -71,6 +71,14 @@ void GLRenderer::AddShader(Shader * shader)
 	this->m_shader = shader;
 }
 
+bool GLRenderer::DynamicMeshes() {
+	for (size_t i = 0; i < m_renderObjects.size(); i++) {
+		if (m_renderObjects[i]->FilterPass(RenderFilter::R_DYNAMIC))
+			return true;
+	}
+	return false;
+}
+
 void GLRenderer::RenderScene(RenderFilter filter, GLuint uniformModel) {
 	for (size_t i = 0; i < m_renderObjects.size(); i++) {
 		int modelIndex = m_renderObjects[i]->GetModelIndex();
@@ -86,16 +94,27 @@ void GLRenderer::RenderScene(RenderFilter filter, GLuint uniformModel) {
 
 void GLRenderer::DirectionalSMPass(RenderFilter filter)
 {
+	if (filter == RenderFilter::R_ALL) {
+		printf("Render_ALL is an unsupported render mode for a shadow map pass");
+		return;
+	}
+	
+	ShadowMap* shadowMap;
+	if (filter == RenderFilter::R_STATIC) {
+		shadowMap = m_directionalLight->GetStaticShadowMap();
+	}
+	else {
+		shadowMap = m_directionalLight->GetDynamicShadowMap();
+	}
+
 	// Use the directional light shadow map
 	m_directionalSMShader->UseShader();
 
 	// Set viewport to be the directional light shadow map
-	glViewport(0, 0, 
-		m_directionalLight->GetShadowMap()->GetShadowWidth(), 
-		m_directionalLight->GetShadowMap()->GetShadowHeight());
+	glViewport(0, 0, shadowMap->GetShadowWidth(), shadowMap->GetShadowHeight());
 
 	// Bind framebuffer to be the shadow map texture
-	m_directionalLight->GetShadowMap()->Write();
+	shadowMap->Write();
 
 	// Clear buffers
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -109,6 +128,8 @@ void GLRenderer::DirectionalSMPass(RenderFilter filter)
 
 	// Re-bind framebuffer to the default one
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	m_directionalLightPassDone = true;
 }
 
 void GLRenderer::RenderPass(RenderFilter filter)
@@ -141,22 +162,32 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	m_shader->SetSpotLights(&m_spotLights[0], m_spotLightsCount);
 	m_shader->SetDirectionalLightTransform(&m_directionalLight->CalculateLightTransform());
 	
-	m_directionalLight->GetShadowMap()->Read(GL_TEXTURE1);
-	m_shader->SetDirectionalSM(1);
+	m_directionalLight->GetStaticShadowMap()->Read(GL_TEXTURE1);
+	m_shader->SetDirectionalStaticSM(1);
+
+	m_directionalLight->GetDynamicShadowMap()->Read(GL_TEXTURE2);
+	m_shader->SetDirectionalDynamicSM(2);
 
 	// Render scene
 	RenderScene(filter, uniformModel);
 }
 
 
-void GLRenderer::Render(GLWindow* glWindow, RenderFilter filter)
+void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter)
 {
-	if (!m_directionalLightPassDone) {
-		DirectionalSMPass(filter);
+	if (filter != RenderFilter::R_STATIC && DynamicMeshes()) {
+		// Only calculate dynamic shadow map if there are dynamic objects to display
+		DirectionalSMPass(RenderFilter::R_DYNAMIC);
 		glWindow->SetViewport();
-		m_directionalLightPassDone = true;
 	}
+
 	RenderPass(filter);
+}
+
+void GLRenderer::BakeShadowMaps(GLWindow * glWindow)
+{
+	DirectionalSMPass(RenderFilter::R_STATIC);
+	glWindow->SetViewport();
 }
 
 

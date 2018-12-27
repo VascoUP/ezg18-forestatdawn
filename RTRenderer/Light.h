@@ -17,11 +17,13 @@ protected:
 
 	glm::mat4 lightProj;
 
-	ShadowMap* mSM;
+	ShadowMap* m_staticSM;
+	ShadowMap* m_dynamicSM;
 public:
 	Light(Transform* transform);
 	Light(Transform* transform,
-		GLfloat shadowWidth, GLfloat shadowHeight,
+		GLfloat staticShadowWidth, GLfloat staticShadowHeight,
+		GLfloat dynamicShadowWidth, GLfloat dynamicShadowHeight,
 		GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, 
 		GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue);
 
@@ -30,7 +32,8 @@ public:
 	glm::vec3 GetDiffuseColor() const;
 	GLfloat GetSpecularIntensity() const;
 	glm::vec3 GetSpecularColor() const;
-	ShadowMap* GetShadowMap();
+	ShadowMap* GetStaticShadowMap();
+	ShadowMap* GetDynamicShadowMap();
 
 	void UseLight(GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation);
 

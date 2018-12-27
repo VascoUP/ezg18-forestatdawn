@@ -72,7 +72,8 @@ void LoadLight(LightType type, nlohmann::json light, GLRenderer * meshRenderer, 
 		lt->Rotate(pitch, yaw, roll);
 		meshRenderer->SetDirectionalLight(
 			new DirectionalLight(lt, 
-				4096, 4096,
+				2048, 2048,
+				1024, 1024,
 				diffIntensity, diffRed, diffGreen, diffBlue, 
 				specIntensity, specRed, specGreen, specBlue));
 		break;
@@ -221,10 +222,12 @@ void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow) 
 	meshRenderer->AddModels(terrain);
 
 	Transform *blackhawkTransform = new Transform(root);
+	blackhawkTransform->SetStatic(false);
 	blackhawkTransform->Scale(0.5f);
-	blackhawkTransform->Translate(glm::vec3(5.0f, 5.0f, 0.0f));
+	blackhawkTransform->Translate(glm::vec3(-5.0f, 10.0f, 15.0f));
 	blackhawkTransform->Rotate(-1.57f, 0.0f, 0.0f);
 	meshRenderer->AddMeshRenderer(new MeshRenderer(blackhawkTransform, 0));
+	blackhawkTransform->AddUpdatable(new ObjectController(blackhawkTransform, 7.0f, 1.0f));
 
 	Transform *tree01Transform = new Transform(root);
 	tree01Transform->Translate(glm::vec3(-5.0f, 0.0f, 0.0f));

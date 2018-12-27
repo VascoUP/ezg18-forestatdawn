@@ -9,7 +9,7 @@ PointLight::PointLight(Transform* transform)
 }
 
 PointLight::PointLight(Transform* transform, GLfloat constant, GLfloat linear, GLfloat exponent, GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
-	: Light(transform, 1024, 1024, diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue)
+	: Light(transform, 1024, 1024, 512, 512, diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue)
 {
 	this->constant = constant;
 	this->linear = linear;

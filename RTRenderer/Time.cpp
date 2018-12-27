@@ -1,14 +1,23 @@
 #include "Time.h"
 
-GLfloat Time::deltaTime = 0;
-GLfloat Time::lastTime = 0;
+GLfloat Time::mDTime = 0;
+GLfloat Time::mTime = 0;
+int Time::mFPS = 0;
+int Time::mSecondsCounter = 0;
 
 GLfloat Time::GetDeltaTime() {
-	return deltaTime;
+	return mDTime;
 }
 
 void Time::Update() {
-	GLfloat	currTime = glfwGetTime();
-	deltaTime = currTime - lastTime;
-	lastTime = currTime;
+	GLfloat	cTime = glfwGetTime();
+	mDTime = cTime - mTime;
+	mTime = cTime;
+
+	mFPS++;
+	if (mTime - (GLfloat)mSecondsCounter >= 1.0) {
+		printf("FPS: %d\n", mFPS);
+		mFPS = 0;
+		mSecondsCounter++;
+	}
 }

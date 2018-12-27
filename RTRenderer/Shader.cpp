@@ -10,12 +10,15 @@ Shader::Shader()
 	uniformView = 0;
 	uniformProjection = 0;
 	uniformCameraPosition = 0;
+	uniformTexture = 0;
 	uniformAmbientIntensity = 0;
 	uniformDirectionalLight.uniformDiffuseColor = 0;
 	uniformDirectionalLight.uniformDiffuseFactor = 0;
 	uniformDirectionalLight.uniformSpecularColor = 0;
 	uniformDirectionalLight.uniformSpecularFactor = 0;
 	uniformDirectionalLight.uniformDirection = 0;
+	uniformDirectionalLightTransform = 0;
+	uniformDirectionalSM = 0;
 	uniformMaterial.uniformSpecularIntensity = 0;
 	uniformMaterial.uniformShininess = 0;
 	uniformMaterial.uniformAlbedo = 0;
@@ -100,6 +103,11 @@ bool Shader::CreateFromString(const char* vertexCode, const char* fragmentCode) 
 			snprintf(locBuff, sizeof(locBuff), "u_spotLights[%d].edge", i);
 			uniformSpotLights[i].uniformEdge = glGetUniformLocation(shaderID, locBuff);
 		}
+
+
+		uniformTexture = glGetUniformLocation(shaderID, "u_mainTexture");
+		uniformDirectionalLightTransform = glGetUniformLocation(shaderID, "u_directionalLightTransform");
+		uniformDirectionalSM = glGetUniformLocation(shaderID, "u_directionalSM");
 	}
 
 	return success;
@@ -195,6 +203,21 @@ void Shader::SetSpotLights(SpotLight **sLight, unsigned int lightCount)
 void Shader::SetMaterial(Material * mat)
 {
 	mat->UseMaterial(uniformMaterial.uniformSpecularIntensity, uniformMaterial.uniformShininess, uniformMaterial.uniformAlbedo);
+}
+
+void Shader::SetTexutre(GLuint textureUnit)
+{
+	glUniform1i(uniformTexture, textureUnit);
+}
+
+void Shader::SetDirectionalSM(GLuint textureUnit)
+{
+	glUniform1i(uniformDirectionalSM, textureUnit);
+}
+
+void Shader::SetDirectionalLightTransform(glm::mat4 * lTransform)
+{
+	glUniformMatrix4fv(uniformDirectionalLightTransform, 1, GL_FALSE, glm::value_ptr(*lTransform));
 }
 
 void Shader::UseShader() {

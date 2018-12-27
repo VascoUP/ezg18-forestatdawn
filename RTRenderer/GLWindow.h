@@ -13,18 +13,20 @@ class GLWindow
 private:
 	GLFWwindow * mainWindow;
 
-	GLint width;
-	GLint height;
+	static GLint width;
+	static GLint height;
 	GLint bufferWidth;
 	GLint bufferHeight;
 public:
-	GLWindow();
 	GLWindow(GLint windowWidth, GLint windowHeight);
 
 	int Initialize();
+	void SetViewport();
 
 	GLfloat GetBufferWidht();
 	GLfloat GetBufferHeight();
+	static int GetWidth() { return width; };
+	static int GetHeight() { return height; };
 
 	bool GetShouldClose();
 

@@ -24,6 +24,8 @@ private:
 	//std::vector<Shader*> shaders;
 
 	Shader* m_shader;
+	Shader* m_directionalSMShader;
+	bool m_directionalLightPassDone = false;
 	Material* m_material;
 
 	GLfloat m_ambientIntensity;
@@ -47,8 +49,13 @@ public:
 	void AddMeshRenderer(MeshRenderer* meshRenderer);
 	void AddTexture(const char* texLocation);
 	void AddShader(Shader* shader);
-	void Render(RenderFilter filter);
+	void Render(GLWindow* glWindow, RenderFilter filter);
 
 	~GLRenderer();
+
+private:
+	void RenderScene(RenderFilter filter, GLuint uniformModel);
+	void DirectionalSMPass(RenderFilter filter);
+	void RenderPass(RenderFilter filter);
 };
 

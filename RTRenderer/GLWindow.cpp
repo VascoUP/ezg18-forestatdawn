@@ -1,10 +1,7 @@
 #include "GLWindow.h"
 
-GLWindow::GLWindow()
-{
-	width = 1600;
-	height = 900;
-}
+int GLWindow::width = 1600;
+int GLWindow::height = 900;
 
 GLWindow::GLWindow(GLint windowWidth, GLint windowHeight) {
 	width = windowWidth;
@@ -62,10 +59,15 @@ int GLWindow::Initialize() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Setup viewport
-	glViewport(0, 0, bufferWidth, bufferHeight);
+	SetViewport();
 
 	// Define the user of main window
 	glfwSetWindowUserPointer(mainWindow, this);
+}
+
+void GLWindow::SetViewport()
+{
+	glViewport(0, 0, bufferWidth, bufferHeight);
 }
 
 GLfloat GLWindow::GetBufferWidht() {

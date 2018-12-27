@@ -25,18 +25,13 @@ void GLCinematicProgram::Run()
 	while (!mWindow->GetShouldClose()) {
 		Time::Update();
 		Input::NewFrame();
-
 		// Get + Handle user input events
 		glfwPollEvents();
-
+		// Update all objects
 		mRoot->Update();
-
-		// Clear Window
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		mRenderer->Render(R_ALL);
-
+		// Render scene
+		mRenderer->Render(mWindow, R_ALL);
+		// Set shader to be default
 		glUseProgram(0);
 
 		mWindow->SwapBuffers();
@@ -80,7 +75,7 @@ void GLRoamProgram::Run()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		mRenderer->Render(R_ALL);
+		mRenderer->Render(mWindow, R_ALL);
 
 		glUseProgram(0);
 

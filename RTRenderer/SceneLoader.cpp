@@ -71,7 +71,10 @@ void LoadLight(LightType type, nlohmann::json light, GLRenderer * meshRenderer, 
 		lt = new Transform(rootObject);
 		lt->Rotate(pitch, yaw, roll);
 		meshRenderer->SetDirectionalLight(
-			new DirectionalLight(lt, diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue));
+			new DirectionalLight(lt, 
+				4096, 4096,
+				diffIntensity, diffRed, diffGreen, diffBlue, 
+				specIntensity, specRed, specGreen, specBlue));
 		break;
 	case POINT:
 		xPos = light[POSITION_KEY][X_KEY];
@@ -83,7 +86,10 @@ void LoadLight(LightType type, nlohmann::json light, GLRenderer * meshRenderer, 
 		lt = new Transform(rootObject);
 		lt->Translate(glm::vec3(xPos, yPos, zPos));
 		meshRenderer->AddPointLight(
-			new PointLight(lt, constant, linear, exponent, diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue));
+			new PointLight(lt, 
+				constant, linear, exponent, 
+				diffIntensity, diffRed, diffGreen, diffBlue, 
+				specIntensity, specRed, specGreen, specBlue));
 		break;
 	case SPOT:
 		pitch = light[ROTATION_KEY][X_KEY];
@@ -100,7 +106,10 @@ void LoadLight(LightType type, nlohmann::json light, GLRenderer * meshRenderer, 
 		lt->Translate(glm::vec3(xPos, yPos, zPos));
 		lt->Rotate(pitch, yaw, roll);
 		meshRenderer->AddSpotLight(
-			new SpotLight(lt, edge, constant, linear, exponent, diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue));
+			new SpotLight(lt, 
+				edge, constant, linear, exponent, 
+				diffIntensity, diffRed, diffGreen, diffBlue, 
+				specIntensity, specRed, specGreen, specBlue));
 		break;
 	}
 }
@@ -155,7 +164,7 @@ std::string SimulateJSONObject() {
 	simulateDLight["rotation"]["x"] = -1.0f;
 	simulateDLight["rotation"]["y"] = 0.0f;
 	simulateDLight["rotation"]["z"] = 0.0f;
-
+	/*
 	nlohmann::json simulatePLight0;
 	simulatePLight0["diffintensity"] = 0.7f;
 	simulatePLight0["specintensity"] = 0.7f;
@@ -187,11 +196,11 @@ std::string SimulateJSONObject() {
 	simulatePLight1["constant"] = 0.1f;
 	simulatePLight1["linear"] = 0.05f;
 	simulatePLight1["exponent"] = 0.02f;
-
+	*/
 	nlohmann::json simulateLights;
 	simulateLights["dlight"] = simulateDLight;
-	simulateLights["plights"]["plight_0"] = simulatePLight0;
-	simulateLights["plights"]["plight_1"] = simulatePLight1;
+	//simulateLights["plights"]["plight_0"] = simulatePLight0;
+	//simulateLights["plights"]["plight_1"] = simulatePLight1;
 
 	simulateScene["lights"] = simulateLights;
 

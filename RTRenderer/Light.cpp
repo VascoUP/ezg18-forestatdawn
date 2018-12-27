@@ -11,7 +11,10 @@ Light::Light(Transform* transform)
 	specularIntensity = 0.5f;
 }
 
-Light::Light(Transform * transform, GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
+Light::Light(Transform * transform,
+	GLfloat shadowWidth, GLfloat shadowHeight,
+	GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, 
+	GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
 {
 	this->transform = transform;
 
@@ -20,6 +23,9 @@ Light::Light(Transform * transform, GLfloat diffIntensity, GLfloat diffRed, GLfl
 
 	specularColor = glm::vec3(specRed, specGreen, specBlue);
 	specularIntensity = specIntensity;
+
+	mSM = new ShadowMap();
+	mSM->Init(shadowWidth, shadowHeight);
 }
 
 Transform * Light::GetTransform() const
@@ -45,6 +51,11 @@ GLfloat Light::GetSpecularIntensity() const
 glm::vec3 Light::GetSpecularColor() const
 {
 	return specularColor;
+}
+
+ShadowMap * Light::GetShadowMap()
+{
+	return mSM;
 }
 
 void Light::UseLight(GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation)

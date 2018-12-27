@@ -6,6 +6,8 @@
 #include <fstream>
 
 #include <GL\glew.h>
+#include <glm\glm.hpp>
+#include <glm\gtc\type_ptr.hpp>
 
 #include "ShaderCompiler.h"
 #include "ErrorShader.h"
@@ -34,9 +36,14 @@ private:
 	// Camera Position
 	GLuint uniformCameraPosition;
 
+	// -- Texture --
+	// Texture
+	GLuint uniformTexture;
+
 	// -- Ambiente Light --
 	// Ambient light intensity
 	GLuint uniformAmbientIntensity;
+
 
 	// -- Directional light --
 	struct {
@@ -51,6 +58,8 @@ private:
 		// Directional light direction
 		GLuint uniformDirection;
 	} uniformDirectionalLight;
+	GLuint uniformDirectionalLightTransform;
+	GLuint uniformDirectionalSM;
 
 	// -- Point Lights --
 	int pointLightCount;
@@ -114,13 +123,15 @@ public:
 	// Getter for uniformAmbientIntensity
 	GLuint GetAmbienteIntensityLocation();
 
+
 	void SetDirectionalLight(DirectionalLight* light);
-
 	void SetPointLights(PointLight** pLight, unsigned int lightCount);
-
 	void SetSpotLights(SpotLight** sLight, unsigned int lightCount);
-	
 	void SetMaterial(Material* mat);
+	void SetTexutre(GLuint textureUnit);
+	void SetDirectionalSM(GLuint textureUnit);
+	void SetDirectionalLightTransform(glm::mat4* lTransform);
+
 
 	// Activates this shader whenever it's called
 	void UseShader();

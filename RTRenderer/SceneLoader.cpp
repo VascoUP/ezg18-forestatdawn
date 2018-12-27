@@ -165,22 +165,22 @@ std::string SimulateJSONObject() {
 	simulateDLight["rotation"]["x"] = -1.0f;
 	simulateDLight["rotation"]["y"] = 0.0f;
 	simulateDLight["rotation"]["z"] = 0.0f;
-	/*
+	
 	nlohmann::json simulatePLight0;
-	simulatePLight0["diffintensity"] = 0.7f;
-	simulatePLight0["specintensity"] = 0.7f;
+	simulatePLight0["diffintensity"] = 0.5f;
+	simulatePLight0["specintensity"] = 0.5f;
 	simulatePLight0["diffcolor"]["red"] = 0.0f;
 	simulatePLight0["diffcolor"]["green"] = 1.0f;
 	simulatePLight0["diffcolor"]["blue"] = 0.0f;
-	simulatePLight0["speccolor"]["red"] = 1.0f;
-	simulatePLight0["speccolor"]["green"] = 0.0f;
+	simulatePLight0["speccolor"]["red"] = 0.0f;
+	simulatePLight0["speccolor"]["green"] = 1.0f;
 	simulatePLight0["speccolor"]["blue"] = 0.0f;
-	simulatePLight0["translation"]["x"] = 0.0f;
+	simulatePLight0["translation"]["x"] = -1.0f;
 	simulatePLight0["translation"]["y"] = 1.0f;
 	simulatePLight0["translation"]["z"] = 0.0f;
-	simulatePLight0["constant"] = 0.3f;
-	simulatePLight0["linear"] = 0.2f;
-	simulatePLight0["exponent"] = 0.1f;
+	simulatePLight0["constant"] = 0.4f;
+	simulatePLight0["linear"] = 0.3f;
+	simulatePLight0["exponent"] = 0.2f;
 
 	nlohmann::json simulatePLight1;
 	simulatePLight1["diffintensity"] = 0.7f;
@@ -197,11 +197,11 @@ std::string SimulateJSONObject() {
 	simulatePLight1["constant"] = 0.1f;
 	simulatePLight1["linear"] = 0.05f;
 	simulatePLight1["exponent"] = 0.02f;
-	*/
+	
 	nlohmann::json simulateLights;
 	simulateLights["dlight"] = simulateDLight;
-	//simulateLights["plights"]["plight_0"] = simulatePLight0;
-	//simulateLights["plights"]["plight_1"] = simulatePLight1;
+	simulateLights["plights"]["plight_0"] = simulatePLight0;
+	simulateLights["plights"]["plight_1"] = simulatePLight1;
 
 	simulateScene["lights"] = simulateLights;
 

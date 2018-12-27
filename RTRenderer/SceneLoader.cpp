@@ -135,7 +135,7 @@ void LoadShaders(nlohmann::json shaders, GLRenderer* meshRenderer) {
 	}
 }
 
-void LoadTransforms(nlohmann::json transform, GLRenderer * meshRenderer, Transform* rootObject) {
+void LoadTransforms(nlohmann::json transform, GLRenderer* meshRenderer, Transform* rootObject) {
 
 }
 
@@ -206,7 +206,40 @@ std::string SimulateJSONObject() {
 	return simulateScene.dump();
 }
 
-void SceneLoader::Load(const char* filename, GLRenderer * meshRenderer, Transform * rootObject) {
+void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow) {
+	TerrainMesh* terrain = new TerrainMesh();
+	terrain->Load();
+	meshRenderer->AddModels(terrain);
+
+	Transform *blackhawkTransform = new Transform(root);
+	blackhawkTransform->Scale(0.5f);
+	blackhawkTransform->Translate(glm::vec3(5.0f, 5.0f, 0.0f));
+	blackhawkTransform->Rotate(-1.57f, 0.0f, 0.0f);
+	meshRenderer->AddMeshRenderer(new MeshRenderer(blackhawkTransform, 0));
+
+	Transform *tree01Transform = new Transform(root);
+	tree01Transform->Translate(glm::vec3(-5.0f, 0.0f, 0.0f));
+	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform, 1));
+
+	Transform *tree01Transform2 = new Transform(root);
+	tree01Transform2->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
+	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform2, 1));
+
+	Transform *tree02Transform = new Transform(root);
+	meshRenderer->AddMeshRenderer(new MeshRenderer(tree02Transform, 2));
+
+	Transform *terrainTransform = new Transform(root);
+	meshRenderer->AddMeshRenderer(new MeshRenderer(terrainTransform, terrain->GetIndex()));
+
+	// Camera object is not static
+	Transform *object = new Transform(root);
+	object->SetStatic(false);
+	object->Translate(glm::vec3(0.0f, 5.0f, -5.0f));
+	object->AddUpdatable(Camera::CreateInstance(object, glWindow));
+	object->AddUpdatable(new CameraController(object, Camera::GetInstance(), 5.0f, 5.0f));
+}
+
+void SceneLoader::Load(const char* filename, GLRenderer * meshRenderer, Transform* rootObject, GLWindow* glWindow) {
 	// Todo: Read from file
 	std::string fileText = SimulateJSONObject();
 
@@ -262,6 +295,8 @@ void SceneLoader::Load(const char* filename, GLRenderer * meshRenderer, Transfor
 	// -- Parse transforms --
 	nlohmann::json transforms = sceneDescription[TRANSFORMS_KEY];
 	if(transforms.type_name() != "null") LoadTransforms(transforms, meshRenderer, rootObject);
+
+	BuildScene(meshRenderer, rootObject, glWindow);
 }
 
 void SceneLoader::Store(const char* filename, GLRenderer * meshRenderer, Transform * transform) {

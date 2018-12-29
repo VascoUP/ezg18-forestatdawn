@@ -12,8 +12,6 @@
 #include "SpotLight.h"
 #include "Texture.h"
 #include "Shader.h"
-#include "DefaultShader.h"
-#include "DirectionalShadowMapShader.h"
 #include "Camera.h"
 #include "Material.h"
 

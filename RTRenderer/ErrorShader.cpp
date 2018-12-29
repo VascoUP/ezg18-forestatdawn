@@ -3,7 +3,7 @@
 ErrorShader* ErrorShader::instance = NULL;
 
 ErrorShader::ErrorShader() {
-	shaderID = ShaderCompiler::CreateFromString(errVShader, errFShader);
+	shaderID = ShaderCompiler::CreateStandardShader(errVShader, errFShader);
 }
 
 ErrorShader* ErrorShader::GetInstance() {

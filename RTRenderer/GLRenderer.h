@@ -12,6 +12,8 @@
 #include "SpotLight.h"
 #include "Texture.h"
 #include "Shader.h"
+#include "DefaultShader.h"
+#include "DirectionalShadowMapShader.h"
 #include "Camera.h"
 #include "Material.h"
 
@@ -23,8 +25,8 @@ private:
 	std::vector<Texture*> m_textures;
 	//std::vector<Shader*> shaders;
 
-	Shader* m_shader;
-	Shader* m_directionalSMShader;
+	DefaultShader* m_shader;
+	DirectionalShadowMapShader* m_directionalSMShader;
 	bool m_directionalLightPassDone = false;
 	Material* m_material;
 
@@ -48,7 +50,7 @@ public:
 	void AddModels(IRenderable* mesh);
 	void AddMeshRenderer(MeshRenderer* meshRenderer);
 	void AddTexture(const char* texLocation);
-	void AddShader(Shader* shader);
+	void AddShader(DefaultShader* shader);
 	void Render(GLWindow* glWindow, Transform* root, RenderFilter filter);
 	void BakeShadowMaps(GLWindow* glWindow);
 

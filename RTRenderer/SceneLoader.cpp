@@ -133,7 +133,7 @@ void LoadShaders(nlohmann::json shaders, GLRenderer* meshRenderer) {
 	nlohmann::json obj = shaders[locBuff];
 
 	while (obj.type_name() != "null") {
-		Shader *shader = new Shader();
+		DefaultShader *shader = new DefaultShader();
 		std::string vertexLocation = obj[VERTEX_SHADER_KEY];
 		std::string fragmentLocation = obj[FRAGMENT_SHADER_KEY];
 		shader->CreateFromFiles(vertexLocation.c_str(), fragmentLocation.c_str());

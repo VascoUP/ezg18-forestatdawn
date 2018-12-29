@@ -2,7 +2,7 @@
 
 GLRenderer::GLRenderer()
 {
-	m_directionalSMShader = new Shader();
+	m_directionalSMShader = new DirectionalShadowMapShader();
 	m_directionalSMShader->CreateFromFiles("Shaders/dSM.vert", "Shaders/dSM.frag");
 	
 	m_material = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
@@ -66,7 +66,7 @@ void GLRenderer::AddTexture(const char* texLocation)
 	m_textures.push_back(tex);
 }
 
-void GLRenderer::AddShader(Shader * shader)
+void GLRenderer::AddShader(DefaultShader * shader)
 {
 	this->m_shader = shader;
 }
@@ -142,20 +142,10 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Set uniforms
-	GLuint uniformModel = 0, uniformView = 0, uniformProjection = 0, uniformAmbientColor = 0, 
-		uniformAmbientIntensity = 0, uniformCameraPosition = 0, uniformAmbienteIntensity = 0;
-
-	uniformModel = m_shader->GetModelLocation();
-	uniformView = m_shader->GetViewLocation();
-	uniformProjection = m_shader->GetProjectionLocation();
-	uniformCameraPosition = m_shader->GetCameraPositionLocation();
-	uniformAmbienteIntensity = m_shader->GetAmbienteIntensityLocation();
-
-	glUniformMatrix4fv(uniformView, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->CalculateViewMatrix()));
-	glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(Camera::GetInstance()->ProjectionMatrix()));
-	glUniform3f(uniformCameraPosition, Camera::GetInstance()->GetCameraPosition().x, Camera::GetInstance()->GetCameraPosition().y, Camera::GetInstance()->GetCameraPosition().z);
-	glUniform1f(uniformAmbienteIntensity, m_ambientIntensity);
-
+	m_shader->SetProjectionMatrix(&Camera::GetInstance()->ProjectionMatrix());
+	m_shader->SetViewMatrix(&Camera::GetInstance()->CalculateViewMatrix());
+	m_shader->SetCameraPosition(&Camera::GetInstance()->GetCameraPosition());
+	m_shader->SetAmbientIntensity(m_ambientIntensity);
 	m_shader->SetMaterial(m_material);
 	m_shader->SetDirectionalLight(m_directionalLight);
 	m_shader->SetPointLights(&m_pointLights[0], m_pointLightsCount);
@@ -167,6 +157,8 @@ void GLRenderer::RenderPass(RenderFilter filter)
 
 	m_directionalLight->GetDynamicShadowMap()->Read(GL_TEXTURE2);
 	m_shader->SetDirectionalDynamicSM(2);
+
+	GLuint uniformModel = m_shader->GetModelLocation();
 
 	// Render scene
 	RenderScene(filter, uniformModel);

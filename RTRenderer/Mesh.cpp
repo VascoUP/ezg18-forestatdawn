@@ -12,6 +12,11 @@ Mesh::Mesh(MeshInfo * info)
 	texture = nullptr;
 }
 
+Texture * Mesh::GetTexture()
+{
+	return texture;
+}
+
 void Mesh::SetTexture(Texture * tex)
 {
 	texture = tex;

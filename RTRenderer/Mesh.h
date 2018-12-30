@@ -35,6 +35,8 @@ public:
 	//! Constructor
 	Mesh(MeshInfo* info);
 
+	Texture* GetTexture();
+
 	void SetTexture(Texture* tex);
 
 	//! This function is responsible for creating a proper Mesh out of vertices and the respective index order

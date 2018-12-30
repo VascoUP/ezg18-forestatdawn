@@ -120,7 +120,9 @@ void LoadModels(nlohmann::json jsonObject, GLRenderer * meshRenderer) {
 	for (size_t i = 0; i < modelLocations.size(); i++) {
 		Model *model = new Model(modelLocations[i].c_str());
 		model->Load();
-		meshRenderer->AddModels(model);
+		GLModelRenderer* modelRenderer = new GLModelRenderer();
+		modelRenderer->SetRenderable(model);
+		meshRenderer->AddObjectRenderer(modelRenderer);
 	}
 }
 
@@ -217,31 +219,32 @@ std::string SimulateJSONObject() {
 }
 
 void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow) {
-	TerrainMesh* terrain = new TerrainMesh();
-	terrain->Load();
-	meshRenderer->AddModels(terrain);
-
 	Transform *blackhawkTransform = new Transform(root);
 	blackhawkTransform->SetStatic(false);
 	blackhawkTransform->Scale(0.5f);
 	blackhawkTransform->Translate(glm::vec3(-5.0f, 10.0f, 15.0f));
 	blackhawkTransform->Rotate(-1.57f, 0.0f, 0.0f);
-	meshRenderer->AddMeshRenderer(new MeshRenderer(blackhawkTransform, 0));
+	meshRenderer->AddMeshRenderer(new GLObject(blackhawkTransform, 0));
 	blackhawkTransform->AddUpdatable(new ObjectController(blackhawkTransform, 7.0f, 1.0f));
 
 	Transform *tree01Transform = new Transform(root);
 	tree01Transform->Translate(glm::vec3(-5.0f, 0.0f, 0.0f));
-	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform, 1));
+	meshRenderer->AddMeshRenderer(new GLObject(tree01Transform, 1));
 
 	Transform *tree01Transform2 = new Transform(root);
 	tree01Transform2->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
-	meshRenderer->AddMeshRenderer(new MeshRenderer(tree01Transform2, 1));
+	meshRenderer->AddMeshRenderer(new GLObject(tree01Transform2, 1));
 
 	Transform *tree02Transform = new Transform(root);
-	meshRenderer->AddMeshRenderer(new MeshRenderer(tree02Transform, 2));
+	meshRenderer->AddMeshRenderer(new GLObject(tree02Transform, 2));
 
-	Transform *terrainTransform = new Transform(root);
-	meshRenderer->AddMeshRenderer(new MeshRenderer(terrainTransform, terrain->GetIndex()));
+	TerrainMesh* terrain = TerrainMesh::CreateInstance();
+	GLMeshRenderer* renderer = new GLMeshRenderer();
+	renderer->SetRenderable(terrain);
+	meshRenderer->AddObjectRenderer(renderer);
+
+	Transform* terrainTransform = new Transform(root);
+	meshRenderer->AddMeshRenderer(new GLObject(terrainTransform, terrain->GetIndex()));
 
 	// Camera object is not static
 	Transform *object = new Transform(root);

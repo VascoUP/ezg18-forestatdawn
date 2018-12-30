@@ -3,7 +3,13 @@
 DirectionalLight::DirectionalLight(Transform* transform)
 	: Light(transform)
 {
-	lightProj = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 20.0f);
+	GLfloat zFar = 40.0f;
+	GLfloat zNear = 0.1f;
+
+	glm::vec3 dir = glm::vec3(transform->GetUp());
+	dir = glm::normalize(dir);
+	lightProj = glm::ortho(-zFar, zFar, -zFar, zFar, zNear, zFar) *
+		glm::lookAt(dir * zFar / 2.0f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 
@@ -18,7 +24,7 @@ DirectionalLight::DirectionalLight(
 		dynamicShadowWidth, dynamicShadowHeight, 
 		diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue)
 {
-	GLfloat zFar = 40.0f;
+	GLfloat zFar = 100.0f;
 	GLfloat zNear = 0.1f;
 
 	glm::vec3 dir = glm::vec3(transform->GetUp());

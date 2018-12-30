@@ -17,7 +17,6 @@
 #include "SpotLight.h"
 #include "Commons.h"
 
-// This class holds the information needed to run simple shader program
 class Shader
 {
 protected:
@@ -173,6 +172,18 @@ protected:
 	void GetShaderUniforms();
 };
 
+class CustomShader 
+	: public StandardShader
+{
+public:
+	CustomShader();
+
+	GLuint GetShaderID();
+
+protected:
+	void GetShaderUniforms();
+};
+
 class ComputeShader :
 	public Shader {
 public:
@@ -190,7 +201,7 @@ class JoinDepthBuffersShader
 	uniform image2D dnmTex;
 	uniform image2D dstTex;
 
-	void main() {\
+	void main() {
 		ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
 		data = ?
 		imageStore(dstTex, storePos, data);\

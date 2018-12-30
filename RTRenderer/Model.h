@@ -10,13 +10,10 @@
 #include "Mesh.h"
 #include "Texture.h"
 
-
 class Model : public IRenderable
 {
 private:
 	std::vector<Mesh*> meshList;
-	// ToDo: Change data struct above to a vector of IDs
-	// std::vector<unsigned int> meshID;
 	std::vector<Texture*> textureList;
 	std::vector<unsigned int> meshToTex;
 
@@ -27,6 +24,9 @@ private:
 	void LoadMaterials(const aiScene *scene);
 public:
 	Model(const char* filename);
+
+	Mesh* GetMeshByIndex(size_t index);
+	Texture* GetTextureByMeshIndex(size_t meshIndex);
 
 	void Load();
 	void Render();

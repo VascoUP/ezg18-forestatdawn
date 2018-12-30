@@ -1,5 +1,128 @@
 #include "GLRenderer.h"
 
+
+GLObject::GLObject(Transform *transform, size_t modelIndex)
+{
+	m_transform = transform;
+	m_modelIndex = modelIndex;
+}
+
+bool GLObject::FilterPass(RenderFilter filter)
+{
+	return (filter == R_ALL ||
+		(filter == R_DYNAMIC && !m_transform->GetStatic()) ||
+		(filter == R_STATIC && m_transform->GetStatic()));
+}
+
+size_t GLObject::GetModelIndex() const
+{
+	return m_modelIndex;
+}
+
+glm::mat4 GLObject::GetTransformMatrix() const
+{
+	return m_transform->TransformMatrix(true);
+}
+
+
+
+void GLObjectRenderer::AddMeshRenderer(GLObject * meshRenderer)
+{
+	m_objects.push_back(meshRenderer);
+}
+
+void GLObjectRenderer::Clear()
+{
+	for (size_t i = 0; i < m_objects.size(); i++) {
+		free(m_objects[i]);
+	}
+	m_objects.clear();
+	if(m_renderable)
+		free(m_renderable);
+	m_renderable = nullptr;
+}
+
+GLObjectRenderer::~GLObjectRenderer()
+{
+	Clear();
+}
+
+
+
+bool RenderMesh(Mesh* mesh, GLObject* meshRenderer, RenderFilter filter, GLuint uniformModel) {
+	if (!meshRenderer->FilterPass(filter))
+		return false;
+
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(meshRenderer->GetTransformMatrix()));
+	mesh->Render();
+	return true;
+}
+
+
+
+void GLModelRenderer::SetRenderable(Model * renderable)
+{
+	m_renderable = renderable;
+}
+
+void GLModelRenderer::Render(RenderFilter filter, GLuint uniformModel)
+{
+	Model* model = (Model*)m_renderable;
+
+	size_t i = 0;
+	Mesh* mesh = model->GetMeshByIndex(i);
+	if (mesh == nullptr)
+		return;
+
+	Texture* tex = model->GetTextureByMeshIndex(i);
+	if (tex != nullptr)
+		tex->UseTexture();
+
+	std::vector<GLObject*> renderableMeshes;
+	for (size_t j = 0; j < m_objects.size(); j++) {
+		if (RenderMesh(mesh, m_objects[j], filter, uniformModel))
+			renderableMeshes.push_back(m_objects[j]);
+	}
+
+	if (renderableMeshes.size() <= 0)
+		return;
+
+	while(mesh != nullptr) {
+		Mesh* mesh = model->GetMeshByIndex(++i);
+		if (mesh == nullptr)
+			return;
+
+		Texture* tex = model->GetTextureByMeshIndex(i);
+		if (tex != nullptr)
+			tex->UseTexture();
+
+		for (size_t j = 0; j < renderableMeshes.size(); j++) {
+			RenderMesh(mesh, renderableMeshes[j], filter, uniformModel);
+		}
+	}
+}
+
+
+
+void GLMeshRenderer::SetRenderable(Mesh * renderable)
+{
+	m_renderable = renderable;
+}
+
+void GLMeshRenderer::Render(RenderFilter filter, GLuint uniformModel)
+{
+	Mesh* mesh = (Mesh*)m_renderable;
+	Texture* tex = mesh->GetTexture();
+	if (tex != nullptr)
+		tex->UseTexture();
+
+	for (size_t i = 0; i < m_objects.size(); i++) {
+		RenderMesh(mesh, m_objects[i], filter, uniformModel);
+	}
+}
+
+
+
 GLRenderer::GLRenderer()
 {
 	m_directionalSMShader = new DirectionalShadowMapShader();
@@ -50,13 +173,21 @@ void GLRenderer::AddSpotLight(SpotLight * light)
 
 void GLRenderer::AddModels(IRenderable * mesh)
 {
-	m_models.push_back(mesh);
-	mesh->SetIndex(m_models.size() - 1);
+	//m_models.push_back(mesh);
+	//mesh->SetIndex(m_models.size() - 1);
 }
 
-void GLRenderer::AddMeshRenderer(MeshRenderer * meshRenderer)
+void GLRenderer::AddObjectRenderer(GLObjectRenderer * renderer)
 {
-	m_renderObjects.push_back(meshRenderer);
+	m_renderables.push_back(renderer);
+	renderer->SetIndex(m_renderables.size() - 1);
+}
+
+void GLRenderer::AddMeshRenderer(GLObject * meshRenderer)
+{
+	size_t index = meshRenderer->GetModelIndex();
+	if (index < m_renderables.size())
+		m_renderables[index]->AddMeshRenderer(meshRenderer);
 }
 
 void GLRenderer::AddTexture(const char* texLocation)
@@ -72,14 +203,18 @@ void GLRenderer::AddShader(DefaultShader * shader)
 }
 
 bool GLRenderer::DynamicMeshes() {
-	for (size_t i = 0; i < m_renderObjects.size(); i++) {
-		if (m_renderObjects[i]->FilterPass(RenderFilter::R_DYNAMIC))
-			return true;
-	}
-	return false;
+	// Todo: Fix function
+	//for (size_t i = 0; i < m_renderObjects.size(); i++) {
+	//	if (m_renderObjects[i]->FilterPass(RenderFilter::R_DYNAMIC))
+	return true;
+	//}
+	//return false;
 }
 
 void GLRenderer::RenderScene(RenderFilter filter, GLuint uniformModel) {
+	for (size_t i = 0; i < m_renderables.size(); i++)
+		m_renderables[i]->Render(filter, uniformModel);
+	/*
 	for (size_t i = 0; i < m_renderObjects.size(); i++) {
 		int modelIndex = m_renderObjects[i]->GetModelIndex();
 
@@ -90,6 +225,7 @@ void GLRenderer::RenderScene(RenderFilter filter, GLuint uniformModel) {
 		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(m_renderObjects[i]->GetTransformMatrix()));
 		m_models[modelIndex]->Render();
 	}
+	*/
 }
 
 void GLRenderer::DirectionalSMPass(RenderFilter filter)
@@ -164,7 +300,6 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	RenderScene(filter, uniformModel);
 }
 
-
 void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter)
 {
 	if (filter != RenderFilter::R_STATIC && DynamicMeshes()) {
@@ -182,7 +317,6 @@ void GLRenderer::BakeShadowMaps(GLWindow * glWindow)
 	glWindow->SetViewport();
 }
 
-
 GLRenderer::~GLRenderer()
 {
 	delete m_shader;
@@ -196,7 +330,7 @@ GLRenderer::~GLRenderer()
 		delete m_spotLights[i];
 	}
 
-	for (size_t i = 0; i < m_renderObjects.size(); i++) {
+	/*for (size_t i = 0; i < m_renderObjects.size(); i++) {
 		if (!m_renderObjects[i])
 			continue;
 		delete m_renderObjects[i];
@@ -206,6 +340,12 @@ GLRenderer::~GLRenderer()
 		if (!m_models[i])
 			continue;
 		delete m_models[i];
+	}*/
+
+	for (size_t i = 0; i < m_renderables.size(); i++) {
+		if (!m_renderables[i])
+			continue;
+		delete m_renderables[i];
 	}
 
 	for (size_t i = 0; i < m_textures.size(); i++) {

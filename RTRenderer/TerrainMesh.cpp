@@ -1,16 +1,18 @@
 #include "TerrainMesh.h"
 
-TerrainMesh::TerrainMesh()
-{
-}
+TerrainMesh::TerrainMesh(MeshInfo* info)
+	: Mesh(info) {}
 
-void TerrainMesh::Load()
+TerrainMesh * TerrainMesh::CreateInstance()
 {
+	Texture* texture = new Texture("Textures/ground.jpg");
+	texture->LoadTexture();
+
 	GLfloat vertices[]{
-		-100.0f, 0.0f, -100.0f,		0.0f, 0.0f,		0.0f, -1.0f, 0.0f,
-		100.0f, 0.0f, -100.0f,		50.0f, 0.0f,	0.0f, -1.0f, 0.0f,
-		100.0f, 0.0f, 100.0f, 		50.0f, 50.0f,	0.0f, -1.0f, 0.0f,
-		-100.0f, 0.0f, 100.0f,		0.0f, 50.0f,	0.0f, -1.0f, 0.0f
+	-100.0f, 0.0f, -100.0f,		0.0f, 0.0f,		0.0f, -1.0f, 0.0f,
+	100.0f, 0.0f, -100.0f,		50.0f, 0.0f,	0.0f, -1.0f, 0.0f,
+	100.0f, 0.0f, 100.0f, 		50.0f, 50.0f,	0.0f, -1.0f, 0.0f,
+	-100.0f, 0.0f, 100.0f,		0.0f, 50.0f,	0.0f, -1.0f, 0.0f
 	};
 
 	unsigned int indices[]{
@@ -22,27 +24,12 @@ void TerrainMesh::Load()
 	terrainInfo->vertices = vertices; terrainInfo->numOfVertices = 32;
 	terrainInfo->indices = indices; terrainInfo->numOfIndices = 6;
 
-	mesh = new Mesh(terrainInfo);
+	TerrainMesh* mesh = new TerrainMesh(terrainInfo);
 	mesh->Load();
-
-	texture = new Texture("Textures/ground.jpg");
-	texture->LoadTexture();
-
 	mesh->SetTexture(texture);
-}
 
-void TerrainMesh::Render()
-{
-	//texture->UseTexture();
-	mesh->Render();
+	return mesh;
 }
-
-void TerrainMesh::Clear()
-{
-	delete mesh;
-	delete texture;
-}
-
 
 TerrainMesh::~TerrainMesh()
 {

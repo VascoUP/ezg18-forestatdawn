@@ -7,10 +7,10 @@ class Texture
 {
 private:
 	GLuint textureID;
-	int width, height, bitDepth;
 
 	const char* fileLocation;
 public:
+	int width, height, bitDepth;
 	Texture();
 	Texture(const char* fileLoc);
 

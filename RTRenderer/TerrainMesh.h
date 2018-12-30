@@ -4,19 +4,13 @@
 #include "Texture.h"
 
 class TerrainMesh : 
-	public IRenderable
+	public Mesh
 {
 private:
-	Mesh* mesh;
-	Texture* texture;
+	TerrainMesh(MeshInfo* info);
 
 public:
-	TerrainMesh();
-
-	void Load();
-	void Render();
-	void Clear();
-
+	static TerrainMesh* CreateInstance();
 	~TerrainMesh();
 };
 

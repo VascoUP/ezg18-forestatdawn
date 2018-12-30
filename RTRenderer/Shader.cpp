@@ -187,6 +187,7 @@ void DefaultShader::GetShaderUniforms()
 
 
 	uniformTexture = GetUniformLocation("u_mainTexture");
+	uniformDirectionalLightTransform = GetUniformLocation("u_directionalLightTransform");
 	uniformDirectionalStaticSM = GetUniformLocation("u_directionalStaticSM");
 	uniformDirectionalDynamicSM = GetUniformLocation("u_directionalDynamicSM");
 }
@@ -299,3 +300,17 @@ void DirectionalShadowMapShader::SetDirectionalLightTransform(glm::mat4 * lTrans
 {
 	glUniformMatrix4fv(uniformDirectionalLightTransform, 1, GL_FALSE, glm::value_ptr(*lTransform));
 }
+
+
+CustomShader::CustomShader()
+{
+	shaderID = 0;
+}
+
+GLuint CustomShader::GetShaderID()
+{
+	return shaderID;
+}
+
+void CustomShader::GetShaderUniforms()
+{}

@@ -7,6 +7,18 @@ Model::Model(const char * filename)
 	this->filename = filename;
 }
 
+Mesh * Model::GetMeshByIndex(size_t index)
+{
+	return index < meshList.size() ? meshList[index] : nullptr;
+}
+
+Texture * Model::GetTextureByMeshIndex(size_t meshIndex)
+{
+	if(meshIndex > meshList.size()) return nullptr;
+	unsigned int materialIndex = meshToTex[meshIndex];
+	return (materialIndex < textureList.size() && textureList[materialIndex]) ? textureList[materialIndex] : nullptr;
+}
+
 void Model::LoadNode(aiNode * node, const aiScene * scene)
 {
 	for (size_t i = 0; i < node->mNumMeshes; i++)

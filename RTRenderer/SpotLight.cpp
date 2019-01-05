@@ -7,11 +7,20 @@ SpotLight::SpotLight(Transform* transform)
 	procEdge = 0;
 }
 
-SpotLight::SpotLight(Transform* transform, GLfloat edge,
-	GLfloat constant, GLfloat linear, GLfloat exponent,
+SpotLight::SpotLight(Transform* transform,
+	GLfloat near, GLfloat far,
+	GLuint staticShadowWidth, GLuint staticShadowHeight,
+	GLuint dynamicShadowWidth, GLuint dynamicShadowHeight,
+	GLfloat edge, GLfloat constant, GLfloat linear, GLfloat exponent,
 	GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue,
-	GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
-	: PointLight(transform, constant, linear, exponent, diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue)
+	GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue): 
+	PointLight(transform, 
+		far, near,
+		staticShadowWidth, staticShadowHeight,
+		dynamicShadowWidth, dynamicShadowHeight,
+		constant, linear, exponent, 
+		diffIntensity, diffRed, diffGreen, diffBlue, 
+		specIntensity, specRed, specGreen, specBlue)
 {
 	this->edge = edge;
 	procEdge = edge;

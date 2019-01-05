@@ -87,7 +87,10 @@ void LoadLight(LightType type, nlohmann::json light, GLRenderer * meshRenderer, 
 		lt = new Transform(rootObject);
 		lt->Translate(glm::vec3(xPos, yPos, zPos));
 		meshRenderer->AddPointLight(
-			new PointLight(lt, 
+			new PointLight(lt,
+				0.01f, 10.0f,
+				512, 512,
+				512, 512,
 				constant, linear, exponent, 
 				diffIntensity, diffRed, diffGreen, diffBlue, 
 				specIntensity, specRed, specGreen, specBlue));
@@ -107,7 +110,10 @@ void LoadLight(LightType type, nlohmann::json light, GLRenderer * meshRenderer, 
 		lt->Translate(glm::vec3(xPos, yPos, zPos));
 		lt->Rotate(pitch, yaw, roll);
 		meshRenderer->AddSpotLight(
-			new SpotLight(lt, 
+			new SpotLight(lt,
+				0.01f, 10.0f,
+				512, 512,
+				512, 512,
 				edge, constant, linear, exponent, 
 				diffIntensity, diffRed, diffGreen, diffBlue, 
 				specIntensity, specRed, specGreen, specBlue));
@@ -169,33 +175,33 @@ std::string SimulateJSONObject() {
 	simulateDLight["rotation"]["z"] = 0.0f;
 	
 	nlohmann::json simulatePLight0;
-	simulatePLight0["diffintensity"] = 0.5f;
-	simulatePLight0["specintensity"] = 0.5f;
-	simulatePLight0["diffcolor"]["red"] = 0.0f;
+	simulatePLight0["diffintensity"] = 0.9f;
+	simulatePLight0["specintensity"] = 0.9f;
+	simulatePLight0["diffcolor"]["red"] = 1.0f;
 	simulatePLight0["diffcolor"]["green"] = 1.0f;
-	simulatePLight0["diffcolor"]["blue"] = 0.0f;
-	simulatePLight0["speccolor"]["red"] = 0.0f;
+	simulatePLight0["diffcolor"]["blue"] = 1.0f;
+	simulatePLight0["speccolor"]["red"] = 1.0f;
 	simulatePLight0["speccolor"]["green"] = 1.0f;
-	simulatePLight0["speccolor"]["blue"] = 0.0f;
-	simulatePLight0["translation"]["x"] = -1.0f;
-	simulatePLight0["translation"]["y"] = 1.0f;
+	simulatePLight0["speccolor"]["blue"] = 1.0f;
+	simulatePLight0["translation"]["x"] = 8.0f;
+	simulatePLight0["translation"]["y"] = 0.5f;
 	simulatePLight0["translation"]["z"] = 0.0f;
-	simulatePLight0["constant"] = 0.4f;
-	simulatePLight0["linear"] = 0.3f;
-	simulatePLight0["exponent"] = 0.2f;
+	simulatePLight0["constant"] = 0.1f;
+	simulatePLight0["linear"] = 0.05f;
+	simulatePLight0["exponent"] = 0.02f;
 
 	nlohmann::json simulatePLight1;
-	simulatePLight1["diffintensity"] = 0.7f;
-	simulatePLight1["specintensity"] = 0.7f;
+	simulatePLight1["diffintensity"] = 0.9f;
+	simulatePLight1["specintensity"] = 0.9f;
 	simulatePLight1["diffcolor"]["red"] = 1.0f;
 	simulatePLight1["diffcolor"]["green"] = 1.0f;
 	simulatePLight1["diffcolor"]["blue"] = 1.0f;
 	simulatePLight1["speccolor"]["red"] = 1.0f;
 	simulatePLight1["speccolor"]["green"] = 1.0f;
 	simulatePLight1["speccolor"]["blue"] = 1.0f;
-	simulatePLight1["translation"]["x"] = 2.0f;
-	simulatePLight1["translation"]["y"] = 1.0f;
-	simulatePLight1["translation"]["z"] = 4.0f;
+	simulatePLight1["translation"]["x"] = -2.0f;
+	simulatePLight1["translation"]["y"] = 0.5f;
+	simulatePLight1["translation"]["z"] = -2.0f;
 	simulatePLight1["constant"] = 0.1f;
 	simulatePLight1["linear"] = 0.05f;
 	simulatePLight1["exponent"] = 0.02f;
@@ -228,7 +234,7 @@ void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow) 
 	blackhawkTransform->AddUpdatable(new ObjectController(blackhawkTransform, 7.0f, 1.0f));
 
 	Transform *tree01Transform = new Transform(root);
-	tree01Transform->Translate(glm::vec3(-5.0f, 0.0f, 0.0f));
+	tree01Transform->Translate(glm::vec3(10.0f, 0.0f, 0.0f));
 	meshRenderer->AddMeshRenderer(new GLObject(tree01Transform, 1));
 
 	Transform *tree01Transform2 = new Transform(root);

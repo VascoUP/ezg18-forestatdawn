@@ -56,9 +56,10 @@ struct Material {
 	vec3 albedo;
 };
 
-uniform sampler2D u_mainTexture;
-uniform sampler2D u_directionalStaticSM;
-uniform sampler2D u_directionalDynamicSM;
+struct OmniShadowMap {
+	samplerCube shadowMap;
+	float farPlane;
+};
 
 uniform	Material u_material;
 uniform vec3 u_cameraPosition;
@@ -70,13 +71,51 @@ uniform int u_pointLightsCount = 0;
 uniform SpotLight u_spotLights[MAX_SPOT_LIGHTS];
 uniform int u_spotLightsCount = 0;
 
+uniform sampler2D u_mainTexture;
+uniform sampler2D u_directionalStaticSM;
+uniform sampler2D u_directionalDynamicSM;
+uniform OmniShadowMap u_omniSM[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
+
+vec3 gridSamplingDisk[20] = vec3[]
+(
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
+
+float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex) {
+	vec3 fragToLight = vert_pos - light.position;
+	float currentDepth = length(fragToLight);
+	
+	float bias   = 0.15;
+
+	float closestDepth = texture(u_omniSM[shadowMapIndex].shadowMap, fragToLight).r;
+	closestDepth *= u_omniSM[shadowMapIndex].farPlane; 
+	return float(currentDepth - bias > closestDepth);
+
+//	float shadow = 0.0;
+//	int samples  = 20;
+//	float viewDistance = length(u_cameraPosition - vert_pos);
+//	float diskRadius = (1.0 + (viewDistance / u_omniSM[shadowMapIndex].farPlane)) / 25.0;
+//	for(int i = 0; i < samples; ++i)
+//	{
+//		float closestDepth = texture(u_omniSM[shadowMapIndex].shadowMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+//		closestDepth *= u_omniSM[shadowMapIndex].farPlane; 
+//		shadow += float(currentDepth - bias > closestDepth);
+//	}
+//	shadow /= float(samples);  
+//	
+//	return shadow;
+}
+
 float CalculateDirectionalShadowFactor(DirectionalLight light) 
 {
 	// Normalized coordinates
 	vec3 projCoords = vert_directionalLightSpacePos.xyz / vert_directionalLightSpacePos.w;
 	projCoords = (projCoords * 0.5) + 0.5;
 
-	//float closestDepth = texture(u_directionalSM, projCoords.xy).x;
 	float currentDepth = projCoords.z;
 
 	vec3 normal = normalize(vert_normal);
@@ -84,8 +123,8 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 
 	float bias = max(0.01 * (1.0 - dot(normal, lightDir)), 0.005);
 
-	float s_shadow = 0.0;//currentDepth > closestDepth ? 1.0 : 0.0;
-	float d_shadow = 0.0;//currentDepth > closestDepth ? 1.0 : 0.0;
+	float s_shadow = 0.0;
+	float d_shadow = 0.0;
 
 	vec2 s_texelSize = 1.0 / textureSize(u_directionalStaticSM, 0);
 	vec2 d_texelSize = 1.0 / textureSize(u_directionalDynamicSM, 0);
@@ -93,31 +132,27 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 		for(int y = -1; y < 1; y++) {
 			float s_pcfDepth = texture(u_directionalStaticSM, projCoords.xy + vec2(x, y) * s_texelSize).x;
 			float d_pcfDepth = texture(u_directionalDynamicSM, projCoords.xy + vec2(x, y) * d_texelSize).x;
-			s_shadow += currentDepth - bias > s_pcfDepth ? 1.0 : 0.0;
-			d_shadow += currentDepth - bias > d_pcfDepth ? 1.0 : 0.0;
+			s_shadow += float(currentDepth - bias > s_pcfDepth);
+			d_shadow += float(currentDepth - bias > d_pcfDepth);
 		}
 	}
 	s_shadow = max(s_shadow, d_shadow) / 9.0;
 
-	if(projCoords.z > 1.0) {
-		s_shadow = 0.0;
-	}
-
-	return s_shadow;
+	return float(projCoords.z < 1.0) * s_shadow;
 }
 
 float CalculateAttenuation(float dist, float falloffStart, float falloffEnd)
 {
 	float attenuation = (falloffEnd - dist) / (falloffEnd - falloffStart);
-    return clamp(attenuation, 0.0f, 1.0f);
+    return clamp(attenuation, 0.0, 1.0);
 }
 
 vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 nLightToFrag, Light light, float shadowFactor) {
-    vec4 outColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    vec4 outColor = vec4(0.0, 0.0, 0.0, 1.0);
 
     //Intensity of the diffuse light. Saturate to keep within the 0-1 range.
     float NdotL = dot( frag.frag_Normal, nLightToFrag );
-    float intensity = clamp( NdotL, 0.0f, 1.0f );
+    float intensity = clamp( NdotL, 0.0, 1.0 );
 
     // Calculate the diffuse light factoring in light color, power and the attenuation
     outColor += intensity * vec4(light.diffuseColor, 1.0f) * vec4(light.diffuseFactor, 1.0f);
@@ -129,24 +164,25 @@ vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 
 
     //Intensity of the specular light
     float NdotH = dot( frag.frag_Normal, H );
-    intensity = pow( clamp( NdotH, 0.0f, 1.0f ), matShininess );
+    intensity = pow( clamp( NdotH, 0.0, 1.0 ), matShininess );
 
     //Sum up the specular light factoring
-    outColor += intensity * vec4(light.specularColor, 1.0f) * vec4(light.specularFactor, 1.0f);
+    outColor += intensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);
 
-    return (1.0 - shadowFactor) * outColor * vec4(matColor, 1.0f);
+    return (1.0 - shadowFactor) * clamp(outColor * vec4(matColor, 1.0), 0.0, 1.0);
 }
  
 vec4 CalculateDirectionalLight(FragParams frag, vec3 matColor, float matShininess, DirectionalLight light) {
 	return CalculateLighting(frag, u_material.albedo, u_material.shininess, -u_directionalLight.direction, u_directionalLight.light, CalculateDirectionalShadowFactor(light));
 }
 
-vec4 CalculatePointLight(FragParams frag, vec3 matColor, float matShininess, PointLight light) {
+vec4 CalculatePointLight(FragParams frag, vec3 matColor, float matShininess, PointLight light, int shadowMapIndex) {
 	vec3 lightToFrag = light.position - frag.frag_Position;
 	float dLightToFrag = length(lightToFrag);
-	lightToFrag = normalize(lightToFrag);
+	vec3 nLightToFrag = normalize(lightToFrag);
 
-	vec4 plColor = CalculateLighting(frag, u_material.albedo, u_material.shininess, lightToFrag, light.light, 0.0);
+	float shadowFactor = CalculateOmniShadowFactor(light, shadowMapIndex);
+	vec4 plColor = CalculateLighting(frag, u_material.albedo, u_material.shininess, nLightToFrag, light.light, shadowFactor);
 
 	// Calculate attenuation based on distance
 	float attenuation = light.exponent * dLightToFrag * dLightToFrag + light.linear * dLightToFrag + light.constant;
@@ -156,26 +192,26 @@ vec4 CalculatePointLight(FragParams frag, vec3 matColor, float matShininess, Poi
 
 
 vec4 CalculatePointLights(FragParams frag, vec3 matColor, float matShininess, PointLight lights[MAX_POINT_LIGHTS], int pointLightCount) {
-	vec4 plsColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	vec4 plsColor = vec4(0.0, 0.0, 0.0, 1.0);
 	for(int i = 0; i < pointLightCount; i++) {
-		plsColor += CalculatePointLight(frag, matColor, matShininess, lights[i]);
+		plsColor += CalculatePointLight(frag, matColor, matShininess, lights[i], i);
 	}
 
 	return plsColor;
 }
 
-vec4 CalculateSpotLight(FragParams frag, vec3 matColor, float matShininess, float slFactor, SpotLight light) {
-	vec4 color = CalculatePointLight(frag, matColor, matShininess, light.light);
-	return color * (1.0f - (1.0f - slFactor) * (1.0f / (1.0f - light.edge)));
+vec4 CalculateSpotLight(FragParams frag, vec3 matColor, float matShininess, float slFactor, SpotLight light, int shadowMapIndex) {
+	vec4 color = CalculatePointLight(frag, matColor, matShininess, light.light, shadowMapIndex);
+	return color * (1.0 - (1.0 - slFactor) * (1.0 / (1.0 - light.edge)));
 }
 
 vec4 CalculateSpotLights(FragParams frag, vec3 matColor, float matShininess, SpotLight lights[MAX_POINT_LIGHTS], int spotLightCount) {
-	vec4 plsColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	vec4 plsColor = vec4(0.0, 0.0, 0.0, 1.0);
 	for(int i = 0; i < spotLightCount; i++) {
 		vec3 rayDirection = normalize(frag.frag_Position - lights[i].light.position);
 		float slFactor = dot(rayDirection, lights[i].direction);
 		if(slFactor > lights[i].edge) {
-			plsColor += CalculateSpotLight(frag, matColor, matShininess, slFactor, lights[i]);
+			plsColor += CalculateSpotLight(frag, matColor, matShininess, slFactor, lights[i], i + u_pointLightsCount);
 		}
 	}
 
@@ -185,7 +221,7 @@ vec4 CalculateSpotLights(FragParams frag, vec3 matColor, float matShininess, Spo
 void main()
 {
 	vec4 textColor = texture(u_mainTexture, vert_mainTex);
-	if(textColor.a <= 0.5f)
+	if(textColor.a <= 0.5)
 		discard;
 
 	FragParams frag;
@@ -196,7 +232,7 @@ void main()
 	vec4 dlColor = CalculateDirectionalLight(frag, u_material.albedo, u_material.shininess, u_directionalLight);
 	vec4 plsColor = CalculatePointLights(frag, u_material.albedo, u_material.shininess, u_pointLights, u_pointLightsCount);
 	vec4 slsColor = CalculateSpotLights(frag, u_material.albedo, u_material.shininess, u_spotLights, u_spotLightsCount);
-	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0f);
+	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0);
 	
-	frag_color = textColor * clamp( dlColor + plsColor + slsColor + aColor, 0.0f, 1.0f );
+	frag_color = textColor * clamp( dlColor + plsColor + slsColor + aColor, 0.0, 1.0 );
 }

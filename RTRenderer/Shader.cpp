@@ -42,9 +42,9 @@ Shader::~Shader()
 }
 
 
-bool StandardShader::CreateFromString(const char* vertexCode, const char* fragmentCode) {
+bool StandardShader::CreateFromString(const char* vertexCode, const char* fragmentCode, const char* geometryCode) {
 	bool success = true;
-	shaderID = ShaderCompiler::CreateStandardShader(vertexCode, fragmentCode);
+	shaderID = ShaderCompiler::CreateStandardShader(vertexCode, fragmentCode, geometryCode);
 	// Fall back on the Error Shader if a problem has happened
 	if (!shaderID) {
 		ErrorShader* errShader = ErrorShader::GetInstance();
@@ -59,7 +59,7 @@ bool StandardShader::CreateFromString(const char* vertexCode, const char* fragme
 	return success;
 }
 
-bool StandardShader::CreateFromFiles(const char* vertexFile, const char* fragmentFile) {
+bool StandardShader::CreateFromFiles(const char* vertexFile, const char* fragmentFile, const char* geometryFile) {
 	bool success = true;
 	std::string vertexString = ReadFile(vertexFile);
 	std::string fragmentString = ReadFile(fragmentFile);
@@ -67,13 +67,22 @@ bool StandardShader::CreateFromFiles(const char* vertexFile, const char* fragmen
 	if (vertexString == "" || fragmentString == "") {
 		ErrorShader* errShader = ErrorShader::GetInstance();
 		shaderID = errShader->GetShaderID();
-		success = false;
+		return false;
 	}
 
 	const char* vertexCode = vertexString.c_str();
 	const char* fragmentCode = fragmentString.c_str();
+	const char* geometryCode = nullptr;
 
-	return CreateFromString(vertexCode, fragmentCode);
+	std::string geometryString = "";
+	if (geometryFile != nullptr) {
+		geometryString = ReadFile(geometryFile);
+		if (geometryString != "") {
+			geometryCode = geometryString.c_str();
+		}
+	}
+
+	return CreateFromString(vertexCode, fragmentCode, geometryCode);
 }
 
 
@@ -161,7 +170,7 @@ void DefaultShader::GetShaderUniforms()
 
 	// -- Spot Light Uniforms --
 	uniformSpotLightCount = GetUniformLocation("u_spotLightsCount");
-	for (size_t i = 0; i < MAX_POINT_LIGHTS; i++) {
+	for (size_t i = 0; i < MAX_SPOT_LIGHTS; i++) {
 		char locBuff[100] = { "\0" };
 		snprintf(locBuff, sizeof(locBuff), "u_spotLights[%d].light.light.diffuseColor", i);
 		uniformSpotLights[i].uniformDiffuseColor = GetUniformLocation(locBuff);
@@ -185,6 +194,14 @@ void DefaultShader::GetShaderUniforms()
 		uniformSpotLights[i].uniformEdge = GetUniformLocation(locBuff);
 	}
 
+	// -- Omni shadow maps --
+	for (size_t i = 0; i < MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS; i++) {
+		char locBuff[100] = { "\0" };
+		snprintf(locBuff, sizeof(locBuff), "u_omniSM[%d].shadowMap", i);
+		uniformOmniSM[i].uniformShadowMap = GetUniformLocation(locBuff);
+		snprintf(locBuff, sizeof(locBuff), "u_omniSM[%d].farPlane", i);
+		uniformOmniSM[i].uniformFarPlane = GetUniformLocation(locBuff);
+	}
 
 	uniformTexture = GetUniformLocation("u_mainTexture");
 	uniformDirectionalLightTransform = GetUniformLocation("u_directionalLightTransform");
@@ -221,7 +238,7 @@ void DefaultShader::SetDirectionalLight(DirectionalLight * light)
 	light->UseLight(uniformDirectionalLight.uniformDirection, uniformDirectionalLight.uniformDiffuseColor, uniformDirectionalLight.uniformDiffuseFactor, uniformDirectionalLight.uniformSpecularColor, uniformDirectionalLight.uniformSpecularFactor);
 }
 
-void DefaultShader::SetPointLights(PointLight **pLight, unsigned int lightCount)
+void DefaultShader::SetPointLights(PointLight **pLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset)
 {
 	if (lightCount > MAX_POINT_LIGHTS)
 		lightCount = MAX_POINT_LIGHTS;
@@ -230,10 +247,13 @@ void DefaultShader::SetPointLights(PointLight **pLight, unsigned int lightCount)
 		pLight[i]->UseLight(uniformPointLights[i].uniformPosition, uniformPointLights[i].uniformConstant,
 			uniformPointLights[i].uniformLinear, uniformPointLights[i].uniformExponent, uniformPointLights[i].uniformDiffuseColor,
 			uniformPointLights[i].uniformDiffuseFactor, uniformPointLights[i].uniformSpecularColor, uniformPointLights[i].uniformSpecularFactor);
+		pLight[i]->GetStaticShadowMap()->Read(GL_TEXTURE0 + textureUnit + i);
+		glUniform1i(uniformOmniSM[i + offset].uniformShadowMap, textureUnit + i);
+		glUniform1f(uniformOmniSM[i + offset].uniformFarPlane, pLight[i]->GetFarPlane());
 	}
 }
 
-void DefaultShader::SetSpotLights(SpotLight **sLight, unsigned int lightCount)
+void DefaultShader::SetSpotLights(SpotLight **sLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset)
 {
 	if (lightCount > MAX_SPOT_LIGHTS)
 		lightCount = MAX_SPOT_LIGHTS;
@@ -243,6 +263,9 @@ void DefaultShader::SetSpotLights(SpotLight **sLight, unsigned int lightCount)
 			uniformSpotLights[i].uniformPosition, uniformSpotLights[i].uniformConstant, uniformSpotLights[i].uniformLinear, uniformSpotLights[i].uniformExponent,
 			uniformSpotLights[i].uniformDiffuseColor, uniformSpotLights[i].uniformDiffuseFactor,
 			uniformSpotLights[i].uniformSpecularColor, uniformSpotLights[i].uniformSpecularFactor);
+		sLight[i]->GetStaticShadowMap()->Read(GL_TEXTURE0 + textureUnit + i);
+		glUniform1i(uniformOmniSM[i + offset].uniformShadowMap, textureUnit + i);
+		glUniform1f(uniformOmniSM[i + offset].uniformFarPlane, sLight[i]->GetFarPlane());
 	}
 }
 
@@ -299,6 +322,52 @@ void DirectionalShadowMapShader::SetModel(glm::mat4 * mMatrix)
 void DirectionalShadowMapShader::SetDirectionalLightTransform(glm::mat4 * lTransform)
 {
 	glUniformMatrix4fv(uniformDirectionalLightTransform, 1, GL_FALSE, glm::value_ptr(*lTransform));
+}
+
+
+OmnidirectionalShadowMapShader::OmnidirectionalShadowMapShader() {
+	shaderID = 0;
+
+	uniformModel = 0;
+	uniformLightPos = 0;
+	uniformFarPlane = 0;
+}
+
+void OmnidirectionalShadowMapShader::GetShaderUniforms() {
+
+	uniformModel = GetUniformLocation("u_modelMatrix");
+	uniformLightPos = GetUniformLocation("u_lightPos");
+	uniformFarPlane = GetUniformLocation("u_farPlane");
+
+	for (size_t i = 0; i < 6; i++) {
+		char locBuff[100] = { "\0" };
+		snprintf(locBuff, sizeof(locBuff), "u_lightMatrices[%d]", i);
+		uniformLightMatrices[i] = GetUniformLocation(locBuff);
+	}
+}
+
+GLuint OmnidirectionalShadowMapShader::GetModelLocation()
+{
+	return uniformModel;
+}
+
+void OmnidirectionalShadowMapShader::SetModel(glm::mat4 * mMatrix)
+{
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(*mMatrix));
+}
+
+void OmnidirectionalShadowMapShader::SetLightPosition(glm::vec3* lPos) {
+	glUniform3f(uniformLightPos, lPos->x, lPos->y, lPos->z);
+}
+
+void OmnidirectionalShadowMapShader::SetFarPlane(GLfloat far) {
+	glUniform1f(uniformFarPlane, far);
+}
+
+void OmnidirectionalShadowMapShader::SetLightMatrices(std::vector<glm::mat4> lightMatrices) {
+	for (size_t i = 0; i < 6; i++) {
+		glUniformMatrix4fv(uniformLightMatrices[i], 1, GL_FALSE, glm::value_ptr(lightMatrices[i]));
+	}
 }
 
 

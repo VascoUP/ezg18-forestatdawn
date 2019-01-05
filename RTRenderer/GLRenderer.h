@@ -66,15 +66,12 @@ class GLRenderer
 {
 private:
 	// Todo: Erase this one
-	//std::vector<IRenderable*> m_models;
 	std::vector<GLObjectRenderer*> m_renderables;
-	
-	//std::vector<std::vector<Mesh*>> m_objects;
-	//std::vector<MeshRenderer*> m_renderObjects;
 	std::vector<Texture*> m_textures;
 
 	DefaultShader* m_shader;
 	DirectionalShadowMapShader* m_directionalSMShader;
+	OmnidirectionalShadowMapShader* m_omnidirectionalSMShader;
 	bool m_directionalLightPassDone = false;
 	Material* m_material;
 
@@ -95,7 +92,6 @@ public:
 	void SetDirectionalLight(DirectionalLight* light);
 	void AddPointLight(PointLight* light);
 	void AddSpotLight(SpotLight* light);
-	void AddModels(IRenderable* mesh);
 	void AddObjectRenderer(GLObjectRenderer* renderer);
 	void AddMeshRenderer(GLObject * meshRenderer);
 	void AddTexture(const char* texLocation);
@@ -109,5 +105,6 @@ private:
 	bool DynamicMeshes();
 	void RenderScene(RenderFilter filter, GLuint uniformModel);
 	void DirectionalSMPass(RenderFilter filter);
+	void OmnidirectionalSMPass(PointLight* light, RenderFilter filter);
 	void RenderPass(RenderFilter filter);
 };

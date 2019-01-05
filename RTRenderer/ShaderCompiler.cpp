@@ -28,7 +28,7 @@ bool ShaderCompiler::AddShader(GLuint myProgram, const char* shaderCode, GLenum 
 	return true;
 }
 
-bool ShaderCompiler::ValidateProgram(GLuint myProgram) {
+bool ShaderCompiler::LinkProgram(GLuint myProgram) {
 	GLint result = 0;
 	GLchar oLog[1024] = { 0 };
 
@@ -39,6 +39,13 @@ bool ShaderCompiler::ValidateProgram(GLuint myProgram) {
 		printf("Error linking program: '%s'\n", oLog);
 		return false;
 	}
+
+	return true;
+}
+
+bool ShaderCompiler::ValidateProgram(GLuint myProgram) {
+	GLint result = 0;
+	GLchar oLog[1024] = { 0 };
 
 	glValidateProgram(myProgram);
 	glGetProgramiv(myProgram, GL_LINK_STATUS, &result);
@@ -51,7 +58,7 @@ bool ShaderCompiler::ValidateProgram(GLuint myProgram) {
 	return true;
 }
 
-GLuint ShaderCompiler::CompileShader(const char* vertexCode, const char* fragmentCode) {
+GLuint ShaderCompiler::CompileShader(const char* vertexCode, const char* fragmentCode, const char* geometryCode) {
 	GLuint shaderID = glCreateProgram();
 
 	if (!shaderID) {
@@ -65,12 +72,15 @@ GLuint ShaderCompiler::CompileShader(const char* vertexCode, const char* fragmen
 	if (!AddShader(shaderID, fragmentCode, GL_FRAGMENT_SHADER)) {
 		return 0;
 	}
+	if (geometryCode != 0 && !AddShader(shaderID, geometryCode, GL_GEOMETRY_SHADER)) {
+		return 0;
+	}
 
-	return ValidateProgram(shaderID) ? shaderID : 0;
+	return LinkProgram(shaderID) ? shaderID : 0;
 }
 
-GLuint ShaderCompiler::CreateStandardShader(const char* vertexCode, const char* fragmentCode) {
-	return CompileShader(vertexCode, fragmentCode);
+GLuint ShaderCompiler::CreateStandardShader(const char* vertexCode, const char* fragmentCode, const char* geometryCode) {
+	return CompileShader(vertexCode, fragmentCode, geometryCode);
 }
 
 GLuint ShaderCompiler::CreateSingleShader(const char * code, GLenum shaderType)
@@ -86,7 +96,7 @@ GLuint ShaderCompiler::CreateSingleShader(const char * code, GLenum shaderType)
 		return 0;
 	}
 
-	return ValidateProgram(shaderID) ? shaderID : 0;
+	return LinkProgram(shaderID) ? shaderID : 0;
 }
 
 void ShaderCompiler::ClearShader(GLuint* shaderID) {

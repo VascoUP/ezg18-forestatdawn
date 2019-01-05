@@ -23,6 +23,7 @@ protected:
 	// ID of the shader
 	GLuint shaderID;
 public:
+	GLuint GetShaderID() const { return shaderID; }
 	// Activates this shader whenever it's called
 	void UseShader();
 	// Frees the memory allocated by the shader program
@@ -45,9 +46,9 @@ class StandardShader :
 {
 public:
 	// Given the vertex and fragment shader code it creates a shader program
-	bool CreateFromString(const char* vertexCode, const char* fragmentCode);
+	bool CreateFromString(const char* vertexCode, const char* fragmentCode, const char* geometryCode = nullptr);
 	// Given the vertex and fragment shader files it creates a shader program
-	bool CreateFromFiles(const char* vertexFile, const char* fragmentFile);
+	bool CreateFromFiles(const char* vertexFile, const char* fragmentFile, const char* geometryFile = nullptr);
 };
 
 class DefaultShader :
@@ -124,6 +125,19 @@ private:
 		GLuint uniformEdge;
 	} uniformSpotLights[MAX_SPOT_LIGHTS];
 
+	// -- Shadow maps --
+	struct {
+		GLuint uniformStaticShadowMap;
+		GLuint uniformDynamicShadowMap;
+	};
+	// Todo: ^ Use this ^
+
+	// -- Omnidirectional shadow maps --
+	struct {
+		GLuint uniformShadowMap;
+		GLuint uniformFarPlane;
+	} uniformOmniSM[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
+
 	// -- Material --
 	struct {
 		GLuint uniformSpecularIntensity;
@@ -142,8 +156,8 @@ public:
 	void SetCameraPosition(glm::vec3 * cPosition);
 	void SetAmbientIntensity(GLfloat aIntensity);
 	void SetDirectionalLight(DirectionalLight* light);
-	void SetPointLights(PointLight** pLight, unsigned int lightCount);
-	void SetSpotLights(SpotLight** sLight, unsigned int lightCount);
+	void SetPointLights(PointLight** pLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
+	void SetSpotLights(SpotLight** sLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
 	void SetMaterial(Material* mat);
 	void SetTexutre(GLuint textureUnit);
 	void SetDirectionalStaticSM(GLuint textureUnit);
@@ -167,6 +181,29 @@ public:
 
 	void SetModel(glm::mat4* mMatrix);
 	void SetDirectionalLightTransform(glm::mat4* lTransform);
+
+protected:
+	void GetShaderUniforms();
+};
+
+class OmnidirectionalShadowMapShader :
+	public StandardShader
+{
+private:
+	GLuint uniformModel;
+	GLuint uniformLightMatrices[6];
+	GLuint uniformLightPos;
+	GLuint uniformFarPlane;
+
+public:
+	OmnidirectionalShadowMapShader();
+
+	GLuint GetModelLocation();
+
+	void SetModel(glm::mat4* mMatrix);
+	void SetLightPosition(glm::vec3* lPos);
+	void SetFarPlane(GLfloat far);
+	void SetLightMatrices(std::vector<glm::mat4> lightMatrices);
 
 protected:
 	void GetShaderUniforms();

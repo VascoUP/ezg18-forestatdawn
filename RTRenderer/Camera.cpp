@@ -24,7 +24,7 @@ glm::vec3 Camera::GetCameraPosition()
 Camera::Camera(Transform* object, GLWindow* window) :
 	AObjectBehavior(object)
 {
-	projectionMatrix = glm::perspective(45.0f, (GLfloat)window->GetBufferWidht() / (GLfloat)window->GetBufferHeight(), 0.1f, 100.0f);
+	projectionMatrix = glm::perspective(glm::radians(45.0f), (GLfloat)window->GetBufferWidht() / (GLfloat)window->GetBufferHeight(), 0.1f, 100.0f);
 }
 
 void Camera::SetUp() {}

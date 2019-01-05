@@ -62,6 +62,8 @@ void GLRoamProgram::Run()
 		return;
 	}
 
+	bool updateObjects = true;
+
 	mRoot->SetUp();
 
 	// TODO: Calculate static shadow maps
@@ -75,7 +77,13 @@ void GLRoamProgram::Run()
 		// Get + Handle user input events
 		glfwPollEvents();
 
-		mRoot->Update();
+		if (Input::IsKeyPress(GLFW_KEY_P))
+			updateObjects = !updateObjects;
+
+		if (updateObjects)
+			mRoot->Update();
+		else
+			Camera::GetInstance()->GetTransform()->Update();
 
 		// Clear Window
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

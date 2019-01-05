@@ -127,6 +127,8 @@ GLRenderer::GLRenderer()
 {
 	m_directionalSMShader = new DirectionalShadowMapShader();
 	m_directionalSMShader->CreateFromFiles("Shaders/dSM.vert", "Shaders/dSM.frag");
+	m_omnidirectionalSMShader = new OmnidirectionalShadowMapShader();
+	m_omnidirectionalSMShader->CreateFromFiles("Shaders/omniSM.vert", "Shaders/omniSM.frag", "Shaders/omniSM.geom");
 	
 	m_material = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
 	m_ambientIntensity = 0.1f;
@@ -171,12 +173,6 @@ void GLRenderer::AddSpotLight(SpotLight * light)
 		m_spotLightsCount++;
 }
 
-void GLRenderer::AddModels(IRenderable * mesh)
-{
-	//m_models.push_back(mesh);
-	//mesh->SetIndex(m_models.size() - 1);
-}
-
 void GLRenderer::AddObjectRenderer(GLObjectRenderer * renderer)
 {
 	m_renderables.push_back(renderer);
@@ -214,18 +210,6 @@ bool GLRenderer::DynamicMeshes() {
 void GLRenderer::RenderScene(RenderFilter filter, GLuint uniformModel) {
 	for (size_t i = 0; i < m_renderables.size(); i++)
 		m_renderables[i]->Render(filter, uniformModel);
-	/*
-	for (size_t i = 0; i < m_renderObjects.size(); i++) {
-		int modelIndex = m_renderObjects[i]->GetModelIndex();
-
-		if (modelIndex < 0 || modelIndex >= m_models.size() ||
-			!m_renderObjects[i]->FilterPass(filter))
-			continue;
-
-		glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(m_renderObjects[i]->GetTransformMatrix()));
-		m_models[modelIndex]->Render();
-	}
-	*/
 }
 
 void GLRenderer::DirectionalSMPass(RenderFilter filter)
@@ -234,7 +218,10 @@ void GLRenderer::DirectionalSMPass(RenderFilter filter)
 		printf("Render_ALL is an unsupported render mode for a shadow map pass");
 		return;
 	}
-	
+
+	// Use the directional light shadow map
+	m_directionalSMShader->UseShader();
+
 	ShadowMap* shadowMap;
 	if (filter == RenderFilter::R_STATIC) {
 		shadowMap = m_directionalLight->GetStaticShadowMap();
@@ -242,10 +229,7 @@ void GLRenderer::DirectionalSMPass(RenderFilter filter)
 	else {
 		shadowMap = m_directionalLight->GetDynamicShadowMap();
 	}
-
-	// Use the directional light shadow map
-	m_directionalSMShader->UseShader();
-
+	
 	// Set viewport to be the directional light shadow map
 	glViewport(0, 0, shadowMap->GetShadowWidth(), shadowMap->GetShadowHeight());
 
@@ -258,14 +242,56 @@ void GLRenderer::DirectionalSMPass(RenderFilter filter)
 	// Set uniforms
 	GLuint uniformModel = m_directionalSMShader->GetModelLocation();
 	m_directionalSMShader->SetDirectionalLightTransform(&m_directionalLight->CalculateLightTransform());
+	
+	ShaderCompiler::ValidateProgram(m_directionalSMShader->GetShaderID());
 
 	// Render scene
 	RenderScene(filter, uniformModel);
 
 	// Re-bind framebuffer to the default one
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
-	m_directionalLightPassDone = true;
+void GLRenderer::OmnidirectionalSMPass(PointLight* light, RenderFilter filter)
+{
+	if (filter == RenderFilter::R_ALL) {
+		printf("Render_ALL is an unsupported render mode for a shadow map pass");
+		return;
+	}
+
+	// Use the directional light shadow map
+	m_omnidirectionalSMShader->UseShader();
+
+	ShadowMap* shadowMap;
+	if (filter == RenderFilter::R_STATIC) {
+		shadowMap = light->GetStaticShadowMap();
+	}
+	else {
+		shadowMap = light->GetDynamicShadowMap();
+	}
+
+	// Set viewport to be the directional light shadow map
+	glViewport(0, 0, shadowMap->GetShadowWidth(), shadowMap->GetShadowHeight());
+
+	// Bind framebuffer to be the shadow map texture
+	shadowMap->Write();
+
+	// Clear buffers
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	// Set uniforms
+	GLuint uniformModel = m_omnidirectionalSMShader->GetModelLocation();
+	m_omnidirectionalSMShader->SetLightMatrices(light->CalculateLightTransform());
+	m_omnidirectionalSMShader->SetLightPosition(&light->GetTransform()->GetPosition());
+	m_omnidirectionalSMShader->SetFarPlane(light->GetFarPlane());
+
+	ShaderCompiler::ValidateProgram(m_omnidirectionalSMShader->GetShaderID());
+
+	// Render scene
+	RenderScene(filter, uniformModel);
+
+	// Re-bind framebuffer to the default one
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void GLRenderer::RenderPass(RenderFilter filter)
@@ -284,17 +310,21 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	m_shader->SetAmbientIntensity(m_ambientIntensity);
 	m_shader->SetMaterial(m_material);
 	m_shader->SetDirectionalLight(m_directionalLight);
-	m_shader->SetPointLights(&m_pointLights[0], m_pointLightsCount);
-	m_shader->SetSpotLights(&m_spotLights[0], m_spotLightsCount);
+	m_shader->SetPointLights(&m_pointLights[0], m_pointLightsCount, 4, 0);
+	m_shader->SetSpotLights(&m_spotLights[0], m_spotLightsCount, 4 + m_pointLightsCount, m_pointLightsCount);
 	m_shader->SetDirectionalLightTransform(&m_directionalLight->CalculateLightTransform());
 	
-	m_directionalLight->GetStaticShadowMap()->Read(GL_TEXTURE1);
-	m_shader->SetDirectionalStaticSM(1);
+	m_shader->SetTexutre(1);
 
-	m_directionalLight->GetDynamicShadowMap()->Read(GL_TEXTURE2);
-	m_shader->SetDirectionalDynamicSM(2);
+	m_directionalLight->GetStaticShadowMap()->Read(GL_TEXTURE2);
+	m_shader->SetDirectionalStaticSM(2);
+
+	m_directionalLight->GetDynamicShadowMap()->Read(GL_TEXTURE3);
+	m_shader->SetDirectionalDynamicSM(3);
 
 	GLuint uniformModel = m_shader->GetModelLocation();
+
+	ShaderCompiler::ValidateProgram(m_shader->GetShaderID());
 
 	// Render scene
 	RenderScene(filter, uniformModel);
@@ -313,7 +343,17 @@ void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter
 
 void GLRenderer::BakeShadowMaps(GLWindow * glWindow)
 {
+	// Directional Light
 	DirectionalSMPass(RenderFilter::R_STATIC);
+	// Point Lights
+	for (size_t i = 0; i < m_pointLightsCount; i++) {
+		OmnidirectionalSMPass(m_pointLights[i], RenderFilter::R_STATIC);
+	}
+	// Spot Lights
+	for (size_t i = 0; i < m_spotLightsCount; i++) {
+		OmnidirectionalSMPass(m_spotLights[i], RenderFilter::R_STATIC);
+	}
+
 	glWindow->SetViewport();
 }
 
@@ -330,18 +370,6 @@ GLRenderer::~GLRenderer()
 		delete m_spotLights[i];
 	}
 
-	/*for (size_t i = 0; i < m_renderObjects.size(); i++) {
-		if (!m_renderObjects[i])
-			continue;
-		delete m_renderObjects[i];
-	}
-
-	for (size_t i = 0; i < m_models.size(); i++) {
-		if (!m_models[i])
-			continue;
-		delete m_models[i];
-	}*/
-
 	for (size_t i = 0; i < m_renderables.size(); i++) {
 		if (!m_renderables[i])
 			continue;
@@ -354,4 +382,3 @@ GLRenderer::~GLRenderer()
 		delete m_textures[i];
 	}
 }
-

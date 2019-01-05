@@ -26,3 +26,14 @@ public:
 	~ShadowMap();
 };
 
+class OmniShadowMap :
+	public ShadowMap
+{
+public:
+	OmniShadowMap();
+
+	bool Init(GLuint width, GLuint height);
+	void Write();
+	void Read(GLenum textureUnit);
+};
+

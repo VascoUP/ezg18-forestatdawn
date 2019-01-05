@@ -11,8 +11,8 @@ class DirectionalLight : public Light
 public:
 	DirectionalLight(Transform* transform);
 	DirectionalLight(Transform* transform,
-		GLfloat staticShadowWidth, GLfloat staticShadowHeight,
-		GLfloat dynamicShadowWidth, GLfloat dynamicShadowHeight,
+		GLuint staticShadowWidth, GLuint staticShadowHeight,
+		GLuint dynamicShadowWidth, GLuint dynamicShadowHeight,
 		GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue, 
 		GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue);
 	

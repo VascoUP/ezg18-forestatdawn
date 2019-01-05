@@ -72,8 +72,8 @@ void LoadLight(LightType type, nlohmann::json light, GLRenderer * meshRenderer, 
 		lt->Rotate(pitch, yaw, roll);
 		meshRenderer->SetDirectionalLight(
 			new DirectionalLight(lt, 
-				2048, 2048,
-				1024, 1024,
+				4096, 4096,
+				4096, 4096,
 				diffIntensity, diffRed, diffGreen, diffBlue, 
 				specIntensity, specRed, specGreen, specBlue));
 		break;
@@ -170,7 +170,7 @@ std::string SimulateJSONObject() {
 	simulateDLight["speccolor"]["red"] = 1.0f;
 	simulateDLight["speccolor"]["green"] = 1.0f;
 	simulateDLight["speccolor"]["blue"] = 1.0f;
-	simulateDLight["rotation"]["x"] = -1.0f;
+	simulateDLight["rotation"]["x"] = -0.5f;
 	simulateDLight["rotation"]["y"] = 0.0f;
 	simulateDLight["rotation"]["z"] = 0.0f;
 	

@@ -121,10 +121,12 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 	vec3 normal = normalize(vert_normal);
 	vec3 lightDir = normalize(light.direction);
 
-	float bias = max(0.01 * (1.0 - dot(normal, lightDir)), 0.005);
+	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
 
-	float s_shadow = 0.0;
-	float d_shadow = 0.0;
+//	float s_depth = texture(u_directionalStaticSM, projCoords.xy).x;
+//	float d_depth = texture(u_directionalDynamicSM, projCoords.xy).x;
+//	float shadow = max(float(currentDepth - bias > s_depth), float(currentDepth - bias > d_depth));
+	float shadow = 0.0;
 
 	vec2 s_texelSize = 1.0 / textureSize(u_directionalStaticSM, 0);
 	vec2 d_texelSize = 1.0 / textureSize(u_directionalDynamicSM, 0);
@@ -132,13 +134,12 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 		for(int y = -1; y < 1; y++) {
 			float s_pcfDepth = texture(u_directionalStaticSM, projCoords.xy + vec2(x, y) * s_texelSize).x;
 			float d_pcfDepth = texture(u_directionalDynamicSM, projCoords.xy + vec2(x, y) * d_texelSize).x;
-			s_shadow += float(currentDepth - bias > s_pcfDepth);
-			d_shadow += float(currentDepth - bias > d_pcfDepth);
+			shadow += max(float(currentDepth - bias > s_pcfDepth), float(currentDepth - bias > d_pcfDepth));
 		}
 	}
-	s_shadow = max(s_shadow, d_shadow) / 9.0;
+	shadow /= 9.0;
 
-	return float(projCoords.z < 1.0) * s_shadow;
+	return float(projCoords.z < 1.0) * shadow;
 }
 
 float CalculateAttenuation(float dist, float falloffStart, float falloffEnd)

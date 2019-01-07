@@ -143,6 +143,10 @@ private:
 		GLuint uniformAlbedo;
 	} uniformMaterial;
 
+	// -- Reflection --
+	GLuint uniformWorldReflection;
+	GLuint uniformReflectionFactor;
+
 public:
 	DefaultShader();
 
@@ -161,6 +165,8 @@ public:
 	void SetDirectionalStaticSM(GLuint textureUnit);
 	void SetDirectionalDynamicSM(GLuint textureUnit);
 	void SetDirectionalLightTransform(glm::mat4 * lTransform);
+	void SetWorldReflection(GLuint textureUnit);
+	void SetReflectionFactor(GLfloat factor);
 
 protected:
 	void GetShaderUniforms();

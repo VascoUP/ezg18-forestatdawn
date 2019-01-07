@@ -112,6 +112,8 @@ GLProgram::GLProgram(RenderMode mode) :
 	mRoot = new Transform();
 	mRenderer = new GLRenderer();
 	SceneLoader::Load("", mRenderer, mRoot, mWindow);
+
+	mRenderer->Initialize(mRoot);
 }
 
 GLProgram::~GLProgram() {}

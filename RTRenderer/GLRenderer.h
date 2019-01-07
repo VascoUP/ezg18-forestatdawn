@@ -69,6 +69,8 @@ private:
 	DefaultShader* m_shader;
 	DirectionalShadowMapShader* m_directionalSMShader;
 	OmnidirectionalShadowMapShader* m_omnidirectionalSMShader;
+
+	GLModelRenderer* model;
 	CubeMapRenderShader* m_cubemapShader;
 
 	bool m_directionalLightPassDone = false;
@@ -83,6 +85,8 @@ private:
 	SpotLight* m_spotLights[MAX_SPOT_LIGHTS];
 public:
 	GLRenderer();
+
+	void Initialize(Transform* transform);
 
 	std::vector<Texture*> GetTextures();
 	GLfloat GetAmbient();

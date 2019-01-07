@@ -11,7 +11,7 @@ out vec2 vert_texCoord;
 
 void main() {
 	gl_Position = u_modelMatrix * vec4(vertPos, 1.0);
-		
+	
 	vert_normal = mat3(u_modelMatrix) * vertNormal;
 	vert_texCoord = vertMainTex;
 }

@@ -125,20 +125,34 @@ void GLMeshRenderer::Render(RenderFilter filter, GLuint uniformModel)
 
 
 GLRenderer::GLRenderer()
-{
+{}
+
+void GLRenderer::Initialize(Transform* transform) {
 	m_directionalSMShader = new DirectionalShadowMapShader();
 	m_directionalSMShader->CreateFromFiles("Shaders/dSM.vert", "Shaders/dSM.frag");
 	m_omnidirectionalSMShader = new OmnidirectionalShadowMapShader();
 	m_omnidirectionalSMShader->CreateFromFiles("Shaders/omniSM.vert", "Shaders/omniSM.frag", "Shaders/omniSM.geom");
 	m_cubemapShader = new CubeMapRenderShader();
 	m_cubemapShader->CreateFromFiles("Shaders/envReflection.vert", "Shaders/envReflection.frag", "Shaders/envReflection.geom");
-	
+
 	cubemap = new CubeMap();
-	cubemap->Init(256, 256, 0.01f, 100.0f);
+	cubemap->Init(1024, 1024, 0.01f, 100.0f);
+
+	Model* mMesh = new Model("Models/uh60.obj");
+	model = new GLModelRenderer();
+	model->SetRenderable(mMesh);
+	//AddObjectRenderer(renderer);
+
+	Transform* mMeshTransform = new Transform(transform);
+	mMeshTransform->Scale(0.2f);
+	mMeshTransform->Translate(glm::vec3(0.0f, 0.5f, 0.0f));
+	mMeshTransform->Rotate(-1.57f, 0.0f, 0.0f);
+	AddMeshRenderer(new GLObject(mMeshTransform, mMesh->GetIndex()));
 
 	m_material = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
 	m_ambientIntensity = 0.1f;
 	m_pointLightsCount = 0;
+	m_spotLightsCount = 0;
 }
 
 std::vector<Texture*> GLRenderer::GetTextures()
@@ -311,8 +325,6 @@ void GLRenderer::CubeMapPass(Transform * transport, CubeMap * cubemap)
 	// Bind framebuffer to be the shadow map texture
 	cubemap->Write();
 
-	// Clear buffers
-	glClear(GL_DEPTH_BUFFER_BIT);
 	// Clear buffer
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -323,7 +335,7 @@ void GLRenderer::CubeMapPass(Transform * transport, CubeMap * cubemap)
 			cubemap->GetAspect(), 
 			cubemap->GetNear(), 
 			cubemap->GetFar()));
-	m_cubemapShader->SetCameraPosition(&Camera::GetInstance()->GetCameraPosition());
+	m_cubemapShader->SetCameraPosition(&glm::vec3(transport->GetPosition().x, transport->GetPosition().y, transport->GetPosition().z));
 	m_cubemapShader->SetAmbientIntensity(m_ambientIntensity);
 	m_cubemapShader->SetMaterial(m_material);
 	m_cubemapShader->SetDirectionalLight(m_directionalLight);
@@ -358,18 +370,28 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	m_shader->SetCameraPosition(&Camera::GetInstance()->GetCameraPosition());
 	m_shader->SetAmbientIntensity(m_ambientIntensity);
 	m_shader->SetMaterial(m_material);
-	m_shader->SetDirectionalLight(m_directionalLight);
-	m_shader->SetPointLights(&m_pointLights[0], m_pointLightsCount, 4, 0);
-	m_shader->SetSpotLights(&m_spotLights[0], m_spotLightsCount, 4 + m_pointLightsCount, m_pointLightsCount);
+	m_shader->SetReflectionFactor(0.0f);
+
+	int textureUnit = 1;
+	m_shader->SetTexutre(textureUnit);
+
+	textureUnit++;
+	m_directionalLight->GetStaticShadowMap()->Read(GL_TEXTURE0 + textureUnit);
+	m_shader->SetDirectionalStaticSM(textureUnit);
+
+	textureUnit++;
+	m_directionalLight->GetDynamicShadowMap()->Read(GL_TEXTURE0 + textureUnit);
+	m_shader->SetDirectionalDynamicSM(textureUnit);
+
+	textureUnit++;
+	cubemap->Read(GL_TEXTURE0 + textureUnit);
+	m_shader->SetWorldReflection(textureUnit);
+
+	textureUnit++;
+	m_shader->SetPointLights(&m_pointLights[0], m_pointLightsCount, textureUnit, 0);
+	m_shader->SetSpotLights(&m_spotLights[0], m_spotLightsCount, textureUnit + m_pointLightsCount, m_pointLightsCount);
 	m_shader->SetDirectionalLightTransform(&m_directionalLight->CalculateLightTransform());
-	
-	m_shader->SetTexutre(1);
-
-	m_directionalLight->GetStaticShadowMap()->Read(GL_TEXTURE2);
-	m_shader->SetDirectionalStaticSM(2);
-
-	m_directionalLight->GetDynamicShadowMap()->Read(GL_TEXTURE3);
-	m_shader->SetDirectionalDynamicSM(3);
+	m_shader->SetDirectionalLight(m_directionalLight);
 
 	GLuint uniformModel = m_shader->GetModelLocation();
 
@@ -377,6 +399,9 @@ void GLRenderer::RenderPass(RenderFilter filter)
 
 	// Render scene
 	RenderScene(filter, uniformModel);
+
+	m_shader->SetReflectionFactor(1.0f);
+	model->Render(RenderFilter::R_ALL, uniformModel);
 }
 
 void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter)

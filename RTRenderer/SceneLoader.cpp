@@ -242,6 +242,7 @@ void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow) 
 	meshRenderer->AddMeshRenderer(new GLObject(tree01Transform2, 1));
 
 	Transform *tree02Transform = new Transform(root);
+	tree02Transform->Translate(glm::vec3(0.0f, 0.0f, 2.0f));
 	meshRenderer->AddMeshRenderer(new GLObject(tree02Transform, 2));
 
 	TerrainMesh* terrain = TerrainMesh::CreateInstance();

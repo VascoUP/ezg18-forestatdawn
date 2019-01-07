@@ -28,9 +28,7 @@ bool CubeMap::Init(GLuint width, GLuint height, GLfloat near, GLfloat far)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mCubeMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-
+	
 	GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
 	if (Status != GL_FRAMEBUFFER_COMPLETE)

@@ -207,6 +207,10 @@ void DefaultShader::GetShaderUniforms()
 	uniformDirectionalLightTransform = GetUniformLocation("u_directionalLightTransform");
 	uniformDirectionalStaticSM = GetUniformLocation("u_directionalStaticSM");
 	uniformDirectionalDynamicSM = GetUniformLocation("u_directionalDynamicSM");
+
+	// -- Reflections --
+	uniformWorldReflection = GetUniformLocation("u_worldReflection");
+	uniformReflectionFactor = GetUniformLocation("u_reflectionFactor");
 }
 
 GLuint DefaultShader::GetModelLocation() {
@@ -292,6 +296,14 @@ void DefaultShader::SetDirectionalDynamicSM(GLuint textureUnit)
 void DefaultShader::SetDirectionalLightTransform(glm::mat4 * lTransform)
 {
 	glUniformMatrix4fv(uniformDirectionalLightTransform, 1, GL_FALSE, glm::value_ptr(*lTransform));
+}
+
+void DefaultShader::SetWorldReflection(GLuint textureUnit) {
+	glUniform1i(uniformWorldReflection, textureUnit);
+}
+
+void DefaultShader::SetReflectionFactor(GLfloat factor) {
+	glUniform1f(uniformReflectionFactor, factor);
 }
 
 

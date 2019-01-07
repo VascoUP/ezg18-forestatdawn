@@ -76,14 +76,8 @@ uniform sampler2D u_directionalStaticSM;
 uniform sampler2D u_directionalDynamicSM;
 uniform OmniShadowMap u_omniSM[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
 
-vec3 gridSamplingDisk[20] = vec3[]
-(
-   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
-   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
-   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
-   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
-   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
-);
+uniform samplerCube u_worldReflection;
+uniform float u_reflectionFactor;
 
 float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex) {
 	vec3 fragToLight = vert_pos - light.position;
@@ -94,20 +88,6 @@ float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex) {
 	float closestDepth = texture(u_omniSM[shadowMapIndex].shadowMap, fragToLight).r;
 	closestDepth *= u_omniSM[shadowMapIndex].farPlane; 
 	return float(currentDepth - bias > closestDepth);
-
-//	float shadow = 0.0;
-//	int samples  = 20;
-//	float viewDistance = length(u_cameraPosition - vert_pos);
-//	float diskRadius = (1.0 + (viewDistance / u_omniSM[shadowMapIndex].farPlane)) / 25.0;
-//	for(int i = 0; i < samples; ++i)
-//	{
-//		float closestDepth = texture(u_omniSM[shadowMapIndex].shadowMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
-//		closestDepth *= u_omniSM[shadowMapIndex].farPlane; 
-//		shadow += float(currentDepth - bias > closestDepth);
-//	}
-//	shadow /= float(samples);  
-//	
-//	return shadow;
 }
 
 float CalculateDirectionalShadowFactor(DirectionalLight light) 
@@ -122,10 +102,6 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 	vec3 lightDir = normalize(light.direction);
 
 	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-
-//	float s_depth = texture(u_directionalStaticSM, projCoords.xy).x;
-//	float d_depth = texture(u_directionalDynamicSM, projCoords.xy).x;
-//	float shadow = max(float(currentDepth - bias > s_depth), float(currentDepth - bias > d_depth));
 	float shadow = 0.0;
 
 	vec2 s_texelSize = 1.0 / textureSize(u_directionalStaticSM, 0);
@@ -235,5 +211,10 @@ void main()
 	vec4 slsColor = CalculateSpotLights(frag, u_material.albedo, u_material.shininess, u_spotLights, u_spotLightsCount);
 	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0);
 	
-	frag_color = textColor * clamp( dlColor + plsColor + slsColor + aColor, 0.0, 1.0 );
+	vec4 fColor = clamp( dlColor + plsColor + slsColor + aColor, 0.0, 1.0 );
+	
+    vec3 posToCam = normalize(vert_pos - u_cameraPosition);
+    vec3 reflectVec = reflect(posToCam, -vert_normal);
+    vec4 reflectColor = vec4(texture(u_worldReflection, reflectVec).rgb, 1.0);
+	frag_color = (1.0 - u_reflectionFactor) * textColor * fColor + u_reflectionFactor * reflectColor;
 }

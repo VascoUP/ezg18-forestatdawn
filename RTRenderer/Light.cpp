@@ -76,6 +76,183 @@ void Light::UseLight(GLuint diffuseColorLocation, GLuint diffuseFactorLocation, 
 	glUniform3f(specularFactorLocation, specularIntensity, specularIntensity, specularIntensity);
 }
 
-Light::~Light()
+
+DirectionalLight::DirectionalLight(Transform* transform)
+	: Light(transform)
 {
+	GLfloat zFar = 40.0f;
+	GLfloat zNear = 0.1f;
+
+	glm::vec3 dir = glm::vec3(transform->GetUp());
+	dir = glm::normalize(dir);
+	lightProj = glm::ortho(-zFar, zFar, -zFar, zFar, zNear, zFar) *
+		glm::lookAt(dir * zFar / 2.0f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+DirectionalLight::DirectionalLight(
+	Transform* transform,
+	GLuint staticShadowWidth, GLuint staticShadowHeight,
+	GLuint dynamicShadowWidth, GLuint dynamicShadowHeight,
+	GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue,
+	GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue)
+	: Light(transform,
+		staticShadowWidth, staticShadowHeight,
+		dynamicShadowWidth, dynamicShadowHeight,
+		diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue)
+{
+	GLfloat zFar = 100.0f;
+	GLfloat zNear = 0.1f;
+
+	glm::vec3 dir = glm::vec3(transform->GetUp());
+	dir = glm::normalize(dir);
+	lightProj = glm::ortho(-zFar, zFar, -zFar, zFar, zNear, zFar) *
+		glm::lookAt(dir * zFar / 2.0f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+glm::vec3 GetDirection(glm::vec3 upVector) {
+	glm::vec3 dir = glm::vec3(upVector);
+	return glm::normalize(-dir);
+}
+
+void DirectionalLight::UseLight(GLuint directionLocation, GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation)
+{
+	glm::vec3 dir = glm::vec3(transform->GetUp());
+	dir = glm::normalize(-dir);
+	glUniform3f(directionLocation, dir.x, dir.y, dir.z);
+	Light::UseLight(diffuseColorLocation, diffuseFactorLocation, specularColorLocation, specularFactorLocation);
+}
+
+glm::mat4 DirectionalLight::CalculateLightTransform()
+{
+	return lightProj;
+}
+
+
+PointLight::PointLight(Transform* transform)
+	: Light(transform)
+{
+	constant = 0;
+	linear = 0;
+	exponent = 0;
+}
+
+PointLight::PointLight(Transform* transform,
+	GLfloat near, GLfloat far,
+	GLuint staticShadowWidth, GLuint staticShadowHeight,
+	GLuint dynamicShadowWidth, GLuint dynamicShadowHeight,
+	GLfloat constant, GLfloat linear, GLfloat exponent,
+	GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue,
+	GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue) :
+	Light(transform,
+		staticShadowWidth, staticShadowHeight,
+		dynamicShadowWidth, dynamicShadowHeight,
+		diffIntensity, diffRed, diffGreen, diffBlue,
+		specIntensity, specRed, specGreen, specBlue)
+{
+	this->constant = constant;
+	this->linear = linear;
+	this->exponent = exponent;
+	this->farPlane = far;
+
+	float aspect = (float)staticShadowWidth / (float)staticShadowHeight;
+	lightProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
+
+	m_staticSM = new OmniShadowMap();
+	m_staticSM->Init(staticShadowWidth, staticShadowHeight);
+}
+
+GLfloat PointLight::GetConstant() const
+{
+	return constant;
+}
+
+GLfloat PointLight::GetLinear() const
+{
+	return linear;
+}
+
+GLfloat PointLight::GetExponent() const
+{
+	return exponent;
+}
+
+GLfloat PointLight::GetFarPlane() const
+{
+	return farPlane;
+}
+
+void PointLight::UseLight(GLuint positionLocation, GLuint constantLocation, GLuint linearLocation, GLuint exponentLocation, GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation)
+{
+	glm::vec3 position = transform->GetPosition();
+	glUniform3f(positionLocation, position.x, position.y, position.z);
+	glUniform1f(constantLocation, constant);
+	glUniform1f(linearLocation, linear);
+	glUniform1f(exponentLocation, exponent);
+	Light::UseLight(diffuseColorLocation, diffuseFactorLocation, specularColorLocation, specularFactorLocation);
+}
+
+std::vector<glm::mat4> PointLight::CalculateLightTransform()
+{
+	glm::vec3 position = transform->GetPosition();
+	std::vector<glm::mat4> lightTransforms;
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(position, position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(position, position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(position, position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(position, position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(position, position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(position, position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+	return lightTransforms;
+}
+
+
+SpotLight::SpotLight(Transform* transform)
+	: PointLight(transform)
+{
+	edge = 0;
+	procEdge = 0;
+}
+
+SpotLight::SpotLight(Transform* transform,
+	GLfloat near, GLfloat far,
+	GLuint staticShadowWidth, GLuint staticShadowHeight,
+	GLuint dynamicShadowWidth, GLuint dynamicShadowHeight,
+	GLfloat edge, GLfloat constant, GLfloat linear, GLfloat exponent,
+	GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue,
+	GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue) :
+	PointLight(transform,
+		far, near,
+		staticShadowWidth, staticShadowHeight,
+		dynamicShadowWidth, dynamicShadowHeight,
+		constant, linear, exponent,
+		diffIntensity, diffRed, diffGreen, diffBlue,
+		specIntensity, specRed, specGreen, specBlue)
+{
+	this->edge = edge;
+	procEdge = edge;
+}
+
+GLfloat SpotLight::GetEdge() const
+{
+	return edge;
+}
+
+GLfloat SpotLight::GetProcEdge() const
+{
+	return procEdge;
+}
+
+void SpotLight::UseLight(GLuint directionLocation, GLuint edgeLocation,
+	GLuint positionLocation, GLuint constantLocation, GLuint linearLocation, GLuint exponentLocation,
+	GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation)
+{
+	glm::vec3 dir = glm::normalize(-transform->GetUp());
+	glUniform3f(directionLocation, dir.x, dir.y, dir.z);
+	glUniform1f(edgeLocation, procEdge);
+	PointLight::UseLight(positionLocation, constantLocation, linearLocation, exponentLocation, diffuseColorLocation, diffuseFactorLocation, specularColorLocation, specularFactorLocation);
 }

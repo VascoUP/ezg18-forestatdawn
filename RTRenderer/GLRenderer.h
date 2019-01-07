@@ -8,12 +8,12 @@
 
 #include "Mesh.h"
 #include "Model.h"
-#include "DirectionalLight.h"
-#include "SpotLight.h"
 #include "Texture.h"
 #include "Shader.h"
 #include "Camera.h"
 #include "Material.h"
+#include "Light.h"
+#include "CubeMap.h"
 
 class GLObject
 {
@@ -26,8 +26,6 @@ public:
 	bool FilterPass(RenderFilter filter);
 	size_t GetModelIndex() const;
 	glm::mat4 GetTransformMatrix() const;
-
-	~GLObject();
 };
 
 class GLObjectRenderer {
@@ -65,13 +63,14 @@ public:
 class GLRenderer
 {
 private:
-	// Todo: Erase this one
 	std::vector<GLObjectRenderer*> m_renderables;
 	std::vector<Texture*> m_textures;
 
 	DefaultShader* m_shader;
 	DirectionalShadowMapShader* m_directionalSMShader;
 	OmnidirectionalShadowMapShader* m_omnidirectionalSMShader;
+	CubeMapRenderShader* m_cubemapShader;
+
 	bool m_directionalLightPassDone = false;
 	Material* m_material;
 
@@ -106,5 +105,6 @@ private:
 	void RenderScene(RenderFilter filter, GLuint uniformModel);
 	void DirectionalSMPass(RenderFilter filter);
 	void OmnidirectionalSMPass(PointLight* light, RenderFilter filter);
+	void CubeMapPass(Transform* transport, CubeMap* cubemap);
 	void RenderPass(RenderFilter filter);
 };

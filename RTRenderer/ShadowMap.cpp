@@ -52,31 +52,6 @@ void ShadowMap::Read(GLenum textureUnit)
 	glBindTexture(GL_TEXTURE_2D, mSM);
 }
 
-void ShadowMap::Copy2DShadowMap(
-	GLuint fboIn, GLuint smIn, unsigned int inWidth, unsigned int inHeight,
-	GLuint fboOut, GLuint smOut, unsigned int outWidth, unsigned int outHeight) {
-	// Bind input FBO + texture to a color attachment
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, fboIn);
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, smIn, 0);
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-	// Bind destination FBO + texture to another color attachment
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fboOut);
-	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, smOut, 0);
-	glDrawBuffer(GL_COLOR_ATTACHMENT1);
-
-	// specify source, destination drawing (sub)rectangles.
-	glBlitFramebuffer(
-		0, 0, inWidth, inHeight,
-		0, 0, outWidth, outHeight,
-		GL_DEPTH_STENCIL_ATTACHMENT, GL_NEAREST);
-
-	// unbind the color attachments
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 GLuint ShadowMap::GetShadowWidth()
 {
 	return mSWidth;

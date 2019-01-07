@@ -134,6 +134,8 @@ public:
 
 	glm::mat4 GetLocalMatrix() const;
 
+	std::vector<glm::mat4> GetCubeViewProjectionMatrices(float aspect, float near, float far);
+
 	glm::vec3 LocalToWorldCoordinates(glm::vec3 point, POINT_TYPE type);
 
 	std::vector<Transform*> GetChildren();

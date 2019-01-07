@@ -1,5 +1,6 @@
 #include "GLRenderer.h"
 
+CubeMap* cubemap;
 
 GLObject::GLObject(Transform *transform, size_t modelIndex)
 {
@@ -129,7 +130,12 @@ GLRenderer::GLRenderer()
 	m_directionalSMShader->CreateFromFiles("Shaders/dSM.vert", "Shaders/dSM.frag");
 	m_omnidirectionalSMShader = new OmnidirectionalShadowMapShader();
 	m_omnidirectionalSMShader->CreateFromFiles("Shaders/omniSM.vert", "Shaders/omniSM.frag", "Shaders/omniSM.geom");
+	m_cubemapShader = new CubeMapRenderShader();
+	m_cubemapShader->CreateFromFiles("Shaders/envReflection.vert", "Shaders/envReflection.frag", "Shaders/envReflection.geom");
 	
+	cubemap = new CubeMap();
+	cubemap->Init(256, 256, 0.01f, 100.0f);
+
 	m_material = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
 	m_ambientIntensity = 0.1f;
 	m_pointLightsCount = 0;
@@ -294,6 +300,49 @@ void GLRenderer::OmnidirectionalSMPass(PointLight* light, RenderFilter filter)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void GLRenderer::CubeMapPass(Transform * transport, CubeMap * cubemap)
+{
+	// Use the directional light shadow map
+	m_cubemapShader->UseShader();
+
+	// Set viewport to be the directional light shadow map
+	glViewport(0, 0, cubemap->GetShadowWidth(), cubemap->GetShadowHeight());
+
+	// Bind framebuffer to be the shadow map texture
+	cubemap->Write();
+
+	// Clear buffers
+	glClear(GL_DEPTH_BUFFER_BIT);
+	// Clear buffer
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Set uniforms
+	m_cubemapShader->SetViewProjectMatrices(
+		transport->GetCubeViewProjectionMatrices(
+			cubemap->GetAspect(), 
+			cubemap->GetNear(), 
+			cubemap->GetFar()));
+	m_cubemapShader->SetCameraPosition(&Camera::GetInstance()->GetCameraPosition());
+	m_cubemapShader->SetAmbientIntensity(m_ambientIntensity);
+	m_cubemapShader->SetMaterial(m_material);
+	m_cubemapShader->SetDirectionalLight(m_directionalLight);
+	m_cubemapShader->SetPointLights(&m_pointLights[0], m_pointLightsCount, 4, 0);
+	m_cubemapShader->SetSpotLights(&m_spotLights[0], m_spotLightsCount, 4 + m_pointLightsCount, m_pointLightsCount);
+
+	m_cubemapShader->SetTexutre(1);
+
+	GLuint uniformModel = m_cubemapShader->GetModelLocation();
+
+	ShaderCompiler::ValidateProgram(m_cubemapShader->GetShaderID());
+
+	// Render scene
+	RenderScene(RenderFilter::R_ALL, uniformModel);
+
+	// Re-bind framebuffer to the default one
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void GLRenderer::RenderPass(RenderFilter filter)
 {
 	// Use the developed default shader
@@ -337,6 +386,9 @@ void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter
 		DirectionalSMPass(RenderFilter::R_DYNAMIC);
 		glWindow->SetViewport();
 	}
+
+	CubeMapPass(root, cubemap);
+	glWindow->SetViewport();
 
 	RenderPass(filter);
 }

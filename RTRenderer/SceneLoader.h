@@ -5,9 +5,9 @@
 #include <nlohmann/json.hpp>
 
 #include "GLRenderer.h"
+#include "GLWindow.h"
 #include "Transform.h"
 #include "Model.h"
-#include "GLWindow.h"
 #include "TerrainMesh.h"
 #include "CameraController.h"
 #include "ObjectController.h"

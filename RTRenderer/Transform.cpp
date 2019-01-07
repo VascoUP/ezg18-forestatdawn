@@ -103,6 +103,23 @@ glm::mat4 Transform::GetLocalMatrix() const
 	return m_localMatrix;
 }
 
+std::vector<glm::mat4> Transform::GetCubeViewProjectionMatrices(float aspect, float near, float far) {
+	glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
+	std::vector<glm::mat4> lightTransforms;
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(m_position, m_position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(m_position, m_position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(m_position, m_position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(m_position, m_position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(m_position, m_position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+	lightTransforms.push_back(lightProj *
+		glm::lookAt(m_position, m_position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+	return lightTransforms;
+}
 
 glm::vec3 Transform::LocalToWorldCoordinates(glm::vec3 point, POINT_TYPE type)
 {

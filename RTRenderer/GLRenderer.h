@@ -70,7 +70,10 @@ private:
 	DirectionalShadowMapShader* m_directionalSMShader;
 	OmnidirectionalShadowMapShader* m_omnidirectionalSMShader;
 
-	GLModelRenderer* model;
+	GLModelRenderer* refractModel;
+	GLModelRenderer* reflectModel;
+	unsigned int Counter = 0;
+	unsigned int DrawAtDelta = 12;
 	CubeMapRenderShader* m_cubemapShader;
 
 	bool m_directionalLightPassDone = false;
@@ -79,9 +82,9 @@ private:
 	GLfloat m_ambientIntensity;
 
 	DirectionalLight* m_directionalLight;
-	int m_pointLightsCount = 0;
+	size_t m_pointLightsCount = 0;
 	PointLight* m_pointLights[MAX_POINT_LIGHTS];
-	int m_spotLightsCount = 0;
+	size_t m_spotLightsCount = 0;
 	SpotLight* m_spotLights[MAX_SPOT_LIGHTS];
 public:
 	GLRenderer();

@@ -20,7 +20,7 @@ void main()
 	gl_Position = u_projectionMatrix * u_viewMatrix * worldPos;
 	vert_directionalLightSpacePos = u_directionalLightTransform * worldPos;
 	
-	vert_normal = mat3(u_modelMatrix) * vertNormal;
+	vert_normal = -normalize(mat3(u_modelMatrix) * vertNormal);
 	vert_mainTex = vertMainTex;
 	vert_pos = worldPos.xyz;
 }

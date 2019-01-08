@@ -211,6 +211,9 @@ void DefaultShader::GetShaderUniforms()
 	// -- Reflections --
 	uniformWorldReflection = GetUniformLocation("u_worldReflection");
 	uniformReflectionFactor = GetUniformLocation("u_reflectionFactor");
+	uniformRefractionFactor = GetUniformLocation("u_refractionFactor");
+	uniformIORValues = GetUniformLocation("u_IoRValues");
+	uniformFresnelValues = GetUniformLocation("u_fresnelValues");
 }
 
 GLuint DefaultShader::GetModelLocation() {
@@ -304,6 +307,18 @@ void DefaultShader::SetWorldReflection(GLuint textureUnit) {
 
 void DefaultShader::SetReflectionFactor(GLfloat factor) {
 	glUniform1f(uniformReflectionFactor, factor);
+}
+
+void DefaultShader::SetRefractionFactor(GLfloat factor) {
+	glUniform1f(uniformRefractionFactor, factor);
+}
+
+void DefaultShader::SetFresnelValues(GLfloat bias, GLfloat power, GLfloat scale) {
+	glUniform3f(uniformFresnelValues, bias, power, scale);
+}
+
+void DefaultShader::SetIORValue(GLfloat x, GLfloat y, GLfloat z) {
+	glUniform3f(uniformIORValues, x, y, z);
 }
 
 

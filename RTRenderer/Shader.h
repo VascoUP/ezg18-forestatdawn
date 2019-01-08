@@ -146,6 +146,9 @@ private:
 	// -- Reflection --
 	GLuint uniformWorldReflection;
 	GLuint uniformReflectionFactor;
+	GLuint uniformRefractionFactor;
+	GLuint uniformIORValues;
+	GLuint uniformFresnelValues;
 
 public:
 	DefaultShader();
@@ -167,6 +170,9 @@ public:
 	void SetDirectionalLightTransform(glm::mat4 * lTransform);
 	void SetWorldReflection(GLuint textureUnit);
 	void SetReflectionFactor(GLfloat factor);
+	void SetRefractionFactor(GLfloat factor);
+	void SetIORValue(GLfloat x, GLfloat y, GLfloat z);
+	void SetFresnelValues(GLfloat bias, GLfloat power, GLfloat scale);
 
 protected:
 	void GetShaderUniforms();

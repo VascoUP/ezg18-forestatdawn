@@ -78,6 +78,9 @@ uniform OmniShadowMap u_omniSM[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
 
 uniform samplerCube u_worldReflection;
 uniform float u_reflectionFactor;
+uniform float u_refractionFactor;
+uniform vec3 u_IoRValues;
+uniform vec3 u_fresnelValues;
 
 float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex) {
 	vec3 fragToLight = vert_pos - light.position;
@@ -141,12 +144,12 @@ vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 
 
     //Intensity of the specular light
     float NdotH = dot( frag.frag_Normal, H );
-    intensity = pow( clamp( NdotH, 0.0, 1.0 ), matShininess );
-
+    intensity = pow(max(0.0, dot(reflect(-nLightToFrag, frag.frag_Normal), -frag.frag_nvToCam)), matShininess);
+	
     //Sum up the specular light factoring
     outColor += intensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);
 
-    return (1.0 - shadowFactor) * clamp(outColor * vec4(matColor, 1.0), 0.0, 1.0);
+    return (1.0 - shadowFactor) * clamp(outColor * vec4(matColor, 1.0), 0.0, 1.0) + shadowFactor * vec4(1.0, 0.0, 1.0, 1.0);
 }
  
 vec4 CalculateDirectionalLight(FragParams frag, vec3 matColor, float matShininess, DirectionalLight light) {
@@ -195,26 +198,75 @@ vec4 CalculateSpotLights(FragParams frag, vec3 matColor, float matShininess, Spo
 	return plsColor;
 }
 
-void main()
-{
-	vec4 textColor = texture(u_mainTexture, vert_mainTex);
-	if(textColor.a <= 0.5)
-		discard;
-
-	FragParams frag;
-	frag.frag_Position = vert_pos;
-	frag.frag_Normal = -vert_normal;
-	frag.frag_nvToCam = normalize(u_cameraPosition - vert_pos);
-	
+vec4 CalculateLigthing(FragParams frag) {
 	vec4 dlColor = CalculateDirectionalLight(frag, u_material.albedo, u_material.shininess, u_directionalLight);
 	vec4 plsColor = CalculatePointLights(frag, u_material.albedo, u_material.shininess, u_pointLights, u_pointLightsCount);
 	vec4 slsColor = CalculateSpotLights(frag, u_material.albedo, u_material.shininess, u_spotLights, u_spotLightsCount);
 	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0);
+	return clamp( dlColor + plsColor + slsColor + aColor, 0.0, 1.0 );
+}
+
+float FresnelApproximation(float iDotN, vec3 fresnelValues)
+{
+    float bias = fresnelValues.x;
+    float power = fresnelValues.y;
+    float scale = fresnelValues.z;
+    return bias + pow(1.0 - iDotN, power) * scale;
+}
+
+vec4 CalculateReflection(FragParams frag) {
+    // -- Reflection color --
+	vec3 reflectVec = reflect(-frag.frag_nvToCam, frag.frag_Normal);
+    return vec4(texture(u_worldReflection, reflectVec).rgb, 1.0);
+
+//	// -- Refraction color --
+//	vec3 refractVec = refract(-frag.frag_nvToCam, frag.frag_Normal, 1.5f);
+//	vec4 refractionColor = vec4(texture(u_worldReflection, refractVec).rgb, 1.0);
+//
+//	// -- Fresnel Refraction and Reflection -- 
+//	float fresnelTerm = FresnelApproximation(-frag.frag_nvToCam, frag.frag_Normal, u_fresnelValues);
+//
+//	return mix(reflectColor, refractionColor, fresnelTerm * u_refractionFactor);
+}
+
+vec3 Refract(vec3 i, vec3 n, float eta)
+{
+    float cosi = dot(-i, n);
+    float cost2 = 1.0 - eta * eta * (1.0 - cosi*cosi);
+    vec3 t = eta*i + ((eta*cosi - sqrt(abs(cost2))) * n);
+    return t * vec3(cost2 > 0.0);
+}
+
+vec4 CalculateRefraction(FragParams frag) {
+	// -- Refraction color --
+	vec3 refractColor;
+	refractColor.x = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.x)).x;
+	refractColor.y = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.y)).y;
+	refractColor.z = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.z)).z;
+	return vec4(refractColor, 1.0);
+}
+
+
+void main()
+{
+	vec4 tColor = texture(u_mainTexture, vert_mainTex);
+	if(tColor.a <= 0.5)
+		discard;
+
+	FragParams frag;
+	frag.frag_Position = vert_pos;
+	frag.frag_Normal = vert_normal;
+	frag.frag_nvToCam = normalize(u_cameraPosition - vert_pos);
 	
-	vec4 fColor = clamp( dlColor + plsColor + slsColor + aColor, 0.0, 1.0 );
+	// -- Color from lights --
+	vec4 lColor = CalculateLigthing(frag);
 	
-    vec3 posToCam = normalize(vert_pos - u_cameraPosition);
-    vec3 reflectVec = reflect(posToCam, -vert_normal);
-    vec4 reflectColor = vec4(texture(u_worldReflection, reflectVec).rgb, 1.0);
-	frag_color = (1.0 - u_reflectionFactor) * textColor * fColor + u_reflectionFactor * reflectColor;
+	// -- Color from reflection and refraction -- 
+	vec4 rflColor = CalculateReflection(frag);
+	vec4 rfrColor = CalculateRefraction(frag);
+	
+	float fresnelTerm = FresnelApproximation(dot(frag.frag_nvToCam, frag.frag_Normal), u_fresnelValues);
+
+	// -- Result --
+	frag_color = mix(tColor, mix(rfrColor, rflColor, fresnelTerm), u_reflectionFactor) * lColor;
 }

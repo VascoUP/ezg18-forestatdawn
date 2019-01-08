@@ -21,7 +21,6 @@ void GLCinematicProgram::Run()
 
 	mRoot->SetUp();
 
-	// TODO: Calculate static shadow maps
 	mRenderer->BakeShadowMaps(mWindow);
 
 	// Loop until window closed
@@ -66,7 +65,6 @@ void GLRoamProgram::Run()
 
 	mRoot->SetUp();
 
-	// TODO: Calculate static shadow maps
 	mRenderer->BakeShadowMaps(mWindow);
 
 	// Loop until window closed

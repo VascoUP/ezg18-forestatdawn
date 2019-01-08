@@ -1,6 +1,9 @@
 #include "GLRenderer.h"
 
-CubeMap* cubemap;
+Transform* refractTransform;
+Transform* reflectTransform;
+CubeMap* refract;
+CubeMap* reflect;
 
 GLObject::GLObject(Transform *transform, size_t modelIndex)
 {
@@ -79,15 +82,18 @@ void GLModelRenderer::Render(RenderFilter filter, GLuint uniformModel)
 	if (tex != nullptr)
 		tex->UseTexture();
 
+	// -- Draw first mesh of each model --
 	std::vector<GLObject*> renderableMeshes;
 	for (size_t j = 0; j < m_objects.size(); j++) {
 		if (RenderMesh(mesh, m_objects[j], filter, uniformModel))
 			renderableMeshes.push_back(m_objects[j]);
 	}
 
+	// -- If there was no draw call don't continue --
 	if (renderableMeshes.size() <= 0)
 		return;
 
+	// -- Draw other meshs --
 	while(mesh != nullptr) {
 		Mesh* mesh = model->GetMeshByIndex(++i);
 		if (mesh == nullptr)
@@ -125,9 +131,10 @@ void GLMeshRenderer::Render(RenderFilter filter, GLuint uniformModel)
 
 
 GLRenderer::GLRenderer()
-{}
+{
+	m_pointLightsCount = 0;
+	m_spotLightsCount = 0;
 
-void GLRenderer::Initialize(Transform* transform) {
 	m_directionalSMShader = new DirectionalShadowMapShader();
 	m_directionalSMShader->CreateFromFiles("Shaders/dSM.vert", "Shaders/dSM.frag");
 	m_omnidirectionalSMShader = new OmnidirectionalShadowMapShader();
@@ -135,24 +142,50 @@ void GLRenderer::Initialize(Transform* transform) {
 	m_cubemapShader = new CubeMapRenderShader();
 	m_cubemapShader->CreateFromFiles("Shaders/envReflection.vert", "Shaders/envReflection.frag", "Shaders/envReflection.geom");
 
-	cubemap = new CubeMap();
-	cubemap->Init(1024, 1024, 0.01f, 100.0f);
-
-	Model* mMesh = new Model("Models/uh60.obj");
-	model = new GLModelRenderer();
-	model->SetRenderable(mMesh);
-	//AddObjectRenderer(renderer);
-
-	Transform* mMeshTransform = new Transform(transform);
-	mMeshTransform->Scale(0.2f);
-	mMeshTransform->Translate(glm::vec3(0.0f, 0.5f, 0.0f));
-	mMeshTransform->Rotate(-1.57f, 0.0f, 0.0f);
-	AddMeshRenderer(new GLObject(mMeshTransform, mMesh->GetIndex()));
+	refract = new CubeMap();
+	refract->Init(512, 512, 0.01f, 50.0f);
+	reflect = new CubeMap();
+	reflect->Init(512, 512, 0.01f, 50.0f);
 
 	m_material = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
 	m_ambientIntensity = 0.1f;
-	m_pointLightsCount = 0;
-	m_spotLightsCount = 0;
+}
+
+void GLRenderer::Initialize(Transform* transform) {
+	//m_directionalSMShader = new DirectionalShadowMapShader();
+	//m_directionalSMShader->CreateFromFiles("Shaders/dSM.vert", "Shaders/dSM.frag");
+	//m_omnidirectionalSMShader = new OmnidirectionalShadowMapShader();
+	//m_omnidirectionalSMShader->CreateFromFiles("Shaders/omniSM.vert", "Shaders/omniSM.frag", "Shaders/omniSM.geom");
+	//m_cubemapShader = new CubeMapRenderShader();
+	//m_cubemapShader->CreateFromFiles("Shaders/envReflection.vert", "Shaders/envReflection.frag", "Shaders/envReflection.geom");
+
+	//refract = new CubeMap();
+	//refract->Init(512, 512, 0.01f, 50.0f);
+	//reflect = new CubeMap();
+	//reflect->Init(512, 512, 0.01f, 50.0f);
+
+	Model* mMesh = new Model("Models/Sphere.obj");
+	mMesh->Load();
+	refractModel = new GLModelRenderer();
+	refractModel->SetRenderable(mMesh);
+
+	refractTransform = new Transform(transform);
+	refractTransform->Scale(0.2f);
+	refractTransform->Translate(glm::vec3(0.0f, 0.5f, 0.0f));
+	refractModel->AddMeshRenderer(new GLObject(refractTransform, mMesh->GetIndex()));
+
+	mMesh = new Model("Models/Sphere.obj");
+	mMesh->Load();
+	reflectModel = new GLModelRenderer();
+	reflectModel->SetRenderable(mMesh);
+
+	reflectTransform = new Transform(transform);
+	reflectTransform->Scale(0.2f);
+	reflectTransform->Translate(glm::vec3(-5.0f, 1.0f, 0.0f));
+	reflectModel->AddMeshRenderer(new GLObject(reflectTransform, mMesh->GetIndex()));
+
+	//m_material = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
+	//m_ambientIntensity = 0.1f;
 }
 
 std::vector<Texture*> GLRenderer::GetTextures()
@@ -371,6 +404,8 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	m_shader->SetAmbientIntensity(m_ambientIntensity);
 	m_shader->SetMaterial(m_material);
 	m_shader->SetReflectionFactor(0.0f);
+	m_shader->SetRefractionFactor(0.0f);
+	m_shader->SetFresnelValues(0.0f, 0.0f, 0.0f);
 
 	int textureUnit = 1;
 	m_shader->SetTexutre(textureUnit);
@@ -384,7 +419,8 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	m_shader->SetDirectionalDynamicSM(textureUnit);
 
 	textureUnit++;
-	cubemap->Read(GL_TEXTURE0 + textureUnit);
+	size_t worldReflectionUnit = textureUnit;
+	refract->Read(GL_TEXTURE0 + textureUnit);
 	m_shader->SetWorldReflection(textureUnit);
 
 	textureUnit++;
@@ -401,7 +437,19 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	RenderScene(filter, uniformModel);
 
 	m_shader->SetReflectionFactor(1.0f);
-	model->Render(RenderFilter::R_ALL, uniformModel);
+	m_shader->SetRefractionFactor(1.0f);
+	m_shader->SetFresnelValues(0.0f, 0.9f, 1.0f);
+	m_shader->SetIORValue(0.5f, 0.51f, 0.52f);
+	refractModel->Render(RenderFilter::R_ALL, uniformModel);
+
+	reflect->Read(GL_TEXTURE0 + worldReflectionUnit);
+	m_shader->SetWorldReflection(worldReflectionUnit);
+
+	m_shader->SetReflectionFactor(1.0f);
+	m_shader->SetRefractionFactor(1.0f);
+	m_shader->SetFresnelValues(1.0f, 0.0f, 0.0f);
+	//m_shader->SetIORValue(0.5f, 0.51f, 0.52f);
+	reflectModel->Render(RenderFilter::R_ALL, uniformModel);
 }
 
 void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter)
@@ -409,11 +457,20 @@ void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter
 	if (filter != RenderFilter::R_STATIC && DynamicMeshes()) {
 		// Only calculate dynamic shadow map if there are dynamic objects to display
 		DirectionalSMPass(RenderFilter::R_DYNAMIC);
+
+		if (Counter == 0) {
+			CubeMapPass(refractTransform, refract);
+		}
+		else if (Counter == 5) {
+			CubeMapPass(reflectTransform, reflect);
+		}
+
+		Counter++;
+		if (Counter >= 10)
+			Counter -= 10;
+
 		glWindow->SetViewport();
 	}
-
-	CubeMapPass(root, cubemap);
-	glWindow->SetViewport();
 
 	RenderPass(filter);
 }
@@ -430,6 +487,9 @@ void GLRenderer::BakeShadowMaps(GLWindow * glWindow)
 	for (size_t i = 0; i < m_spotLightsCount; i++) {
 		OmnidirectionalSMPass(m_spotLights[i], RenderFilter::R_STATIC);
 	}
+
+	CubeMapPass(refractTransform, refract);
+	CubeMapPass(reflectTransform, reflect);
 
 	glWindow->SetViewport();
 }

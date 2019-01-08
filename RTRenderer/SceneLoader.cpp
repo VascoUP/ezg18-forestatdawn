@@ -208,8 +208,8 @@ std::string SimulateJSONObject() {
 	
 	nlohmann::json simulateLights;
 	simulateLights["dlight"] = simulateDLight;
-	//simulateLights["plights"]["plight_0"] = simulatePLight0;
-	//simulateLights["plights"]["plight_1"] = simulatePLight1;
+	simulateLights["plights"]["plight_0"] = simulatePLight0;
+	simulateLights["plights"]["plight_1"] = simulatePLight1;
 
 	simulateScene["lights"] = simulateLights;
 

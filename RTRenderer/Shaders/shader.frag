@@ -255,7 +255,7 @@ void main()
 
 	FragParams frag;
 	frag.frag_Position = vert_pos;
-	frag.frag_Normal = vert_normal;
+	frag.frag_Normal = -vert_normal;
 	frag.frag_nvToCam = normalize(u_cameraPosition - vert_pos);
 	
 	// -- Color from lights --

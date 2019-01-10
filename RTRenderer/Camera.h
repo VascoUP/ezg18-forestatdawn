@@ -28,6 +28,9 @@ public:
 	glm::mat4 CalculateViewMatrix();
 	glm::mat4 ProjectionMatrix();
 
+	bool PointInsideViewFrustum(glm::vec3* point, float bias);
+	static bool PointInsideViewFrustum(float cameraAngle, glm::vec3* cameraPosition, glm::vec3* cameraFront, glm::vec3* point, float bias);
+
 	void SetUp();
 	void Update();
 

@@ -149,7 +149,7 @@ vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 
     //Sum up the specular light factoring
     outColor += intensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);
 
-    return (1.0 - shadowFactor) * clamp(outColor * vec4(matColor, 1.0), 0.0, 1.0) + shadowFactor * vec4(1.0, 0.0, 1.0, 1.0);
+    return (1.0 - shadowFactor) * clamp(outColor * vec4(matColor, 1.0), 0.0, 1.0);
 }
  
 vec4 CalculateDirectionalLight(FragParams frag, vec3 matColor, float matShininess, DirectionalLight light) {
@@ -250,7 +250,7 @@ vec4 CalculateRefraction(FragParams frag) {
 void main()
 {
 	vec4 tColor = texture(u_mainTexture, vert_mainTex);
-	if(tColor.a <= 0.5)
+	if(tColor.a < 0.1)
 		discard;
 
 	FragParams frag;
@@ -262,11 +262,17 @@ void main()
 	vec4 lColor = CalculateLigthing(frag);
 	
 	// -- Color from reflection and refraction -- 
-	vec4 rflColor = CalculateReflection(frag);
-	vec4 rfrColor = CalculateRefraction(frag);
+	if(u_reflectionFactor > 0.1) {
+		vec4 rflColor = CalculateReflection(frag);
+		vec4 rfrColor = CalculateRefraction(frag);
 	
-	float fresnelTerm = FresnelApproximation(dot(frag.frag_nvToCam, frag.frag_Normal), u_fresnelValues);
+		float fresnelTerm = FresnelApproximation(dot(frag.frag_nvToCam, frag.frag_Normal), u_fresnelValues);
 
-	// -- Result --
-	frag_color = mix(tColor, mix(rfrColor, rflColor, fresnelTerm), u_reflectionFactor) * lColor;
+		// -- Result --
+		frag_color = mix(tColor, mix(rfrColor, rflColor, fresnelTerm), u_reflectionFactor);
+	} else {
+		frag_color = tColor;
+	}
+
+	frag_color *= lColor;
 }

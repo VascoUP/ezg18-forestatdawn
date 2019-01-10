@@ -1,7 +1,14 @@
 #include "CubeMap.h"
 
-CubeMap::CubeMap()
+constexpr unsigned int SIZE1 = 512;
+constexpr unsigned int SIZE2 = 256;
+constexpr unsigned int SIZE3 = 128;
+constexpr float DISTANCE1 = 2.0f;
+constexpr float DISTANCE2 = 4.0f;
+
+CubeMap::CubeMap(GLfloat near, GLfloat far)
 {
+	mNear = near; mFar = far;
 }
 
 bool CubeMap::Init(GLuint width, GLuint height, GLfloat near, GLfloat far)
@@ -53,16 +60,38 @@ void CubeMap::Read(GLenum textureUnit)
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mCubeMap);
 }
 
-GLuint CubeMap::GetShadowWidth()
+void CubeMap::ReadyCubemap(float distToCamera)
 {
-	return mSWidth;
+	if (mAdaptResolution) {
+		if (distToCamera <= DISTANCE1) {
+			if (mSWidth != SIZE1) {
+				Clear();
+				Init(SIZE1, SIZE1, mNear, mFar);
+			}
+		}
+		else if (distToCamera <= DISTANCE2) {
+			if (mSWidth != SIZE2) {
+				Clear();
+				Init(SIZE2, SIZE2, mNear, mFar);
+			}
+		}
+		else if (mSWidth != SIZE3) {
+			Clear();
+			Init(SIZE3, SIZE3, mNear, mFar);
+		}
+	}
 }
 
-GLuint CubeMap::GetShadowHeight()
+void CubeMap::Clear()
 {
-	return mSHeight;
+	if (mFBO)
+		glDeleteFramebuffers(1, &mFBO);
+
+	if (mCubeMap)
+		glDeleteTextures(1, &mCubeMap);
 }
 
 CubeMap::~CubeMap()
 {
+	Clear();
 }

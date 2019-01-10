@@ -1,5 +1,7 @@
 #include "Camera.h"
 
+constexpr float CAMERA_ANGLE = glm::radians(45.0f);
+
 /* 
 ---------------------------
  Enforce Singleton pattern
@@ -24,7 +26,7 @@ glm::vec3 Camera::GetCameraPosition()
 Camera::Camera(Transform* object, GLWindow* window) :
 	AObjectBehavior(object)
 {
-	projectionMatrix = glm::perspective(glm::radians(45.0f), (GLfloat)window->GetBufferWidht() / (GLfloat)window->GetBufferHeight(), 0.1f, 100.0f);
+	projectionMatrix = glm::perspective(CAMERA_ANGLE, (GLfloat)window->GetBufferWidht() / (GLfloat)window->GetBufferHeight(), 0.1f, 100.0f);
 }
 
 void Camera::SetUp() {}
@@ -40,6 +42,17 @@ glm::mat4 Camera::CalculateViewMatrix() {
 
 glm::mat4 Camera::ProjectionMatrix() {
 	return projectionMatrix;
+}
+
+bool Camera::PointInsideViewFrustum(float cameraAngle, glm::vec3* cameraPosition, glm::vec3* cameraFront, glm::vec3* point, float bias) {
+	glm::vec3 nPoint = glm::normalize(*point - *cameraPosition);
+	float dotProd = glm::dot(*cameraFront, nPoint);
+	float cosAngle = glm::cos(cameraAngle + bias);
+	return dotProd >= cosAngle;
+}
+
+bool Camera::PointInsideViewFrustum(glm::vec3* point, float bias) {
+	return Camera::PointInsideViewFrustum(CAMERA_ANGLE, &transform->GetPosition(), &transform->GetFront(), point, bias);
 }
 
 Camera::~Camera() {

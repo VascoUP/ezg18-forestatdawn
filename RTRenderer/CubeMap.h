@@ -16,17 +16,22 @@ private:
 	GLfloat mNear;
 	GLfloat mAspect;
 
+	bool mAdaptResolution = true;
+
 public:
-	CubeMap();
+	CubeMap(GLfloat near, GLfloat far);
 
 	bool Init(GLuint width, GLuint height, GLfloat near, GLfloat far);
 	void Write();
 	void Read(GLenum textureUnit);
+	void Clear();
+
+	void ReadyCubemap(float distToCamera);
 
 	GLuint GetFBO() { return mFBO; };
 	GLuint GetCubeMap() { return mCubeMap; };
-	GLuint GetShadowWidth();
-	GLuint GetShadowHeight();
+	GLuint GetShadowWidth() { return mSWidth; };
+	GLuint GetShadowHeight() { return mSHeight; };
 	GLfloat GetFar() { return mFar; };
 	GLfloat GetNear() { return mNear; };
 	GLfloat GetAspect() { return mAspect; };

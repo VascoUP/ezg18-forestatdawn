@@ -470,7 +470,7 @@ void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter
 	RenderPass(filter);
 }
 
-void GLRenderer::BakeShadowMaps(GLWindow * glWindow)
+void GLRenderer::BakeStage(GLWindow * glWindow)
 {
 	// Directional Light
 	DirectionalSMPass(RenderFilter::R_STATIC);

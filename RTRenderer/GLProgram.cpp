@@ -21,7 +21,7 @@ void GLCinematicProgram::Run()
 
 	mRoot->SetUp();
 
-	mRenderer->BakeShadowMaps(mWindow);
+	mRenderer->BakeStage(mWindow);
 
 	// Loop until window closed
 	while (!mWindow->GetShouldClose()) {
@@ -65,7 +65,7 @@ void GLRoamProgram::Run()
 
 	mRoot->SetUp();
 
-	mRenderer->BakeShadowMaps(mWindow);
+	mRenderer->BakeStage(mWindow);
 
 	// Loop until window closed
 	while (!mWindow->GetShouldClose()) {

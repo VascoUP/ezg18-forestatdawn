@@ -103,7 +103,7 @@ public:
 	void AddTexture(const char* texLocation);
 	void AddShader(DefaultShader* shader);
 	void Render(GLWindow* glWindow, Transform* root, RenderFilter filter);
-	void BakeShadowMaps(GLWindow* glWindow);
+	void BakeStage(GLWindow* glWindow);
 
 	~GLRenderer();
 

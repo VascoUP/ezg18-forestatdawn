@@ -529,7 +529,7 @@ void OmnidirectionalShadowMapShader::GetShaderUniforms() {
 
 	for (size_t i = 0; i < 6; i++) {
 		char locBuff[100] = { "\0" };
-		snprintf(locBuff, sizeof(locBuff), "u_lightMatrices[%d]", i);
+		snprintf(locBuff, sizeof(locBuff), "u_viewProjectionMatrices[%d]", i);
 		uniformLightMatrices[i] = GetUniformLocation(locBuff);
 	}
 }

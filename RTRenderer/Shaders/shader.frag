@@ -144,7 +144,7 @@ vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 
 
     //Intensity of the specular light
     float NdotH = dot( frag.frag_Normal, H );
-    intensity = pow(max(0.0, dot(reflect(-nLightToFrag, frag.frag_Normal), -frag.frag_nvToCam)), matShininess);
+    intensity = pow( clamp( NdotH, 0.0, 1.0 ), matShininess );
 	
     //Sum up the specular light factoring
     outColor += intensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);

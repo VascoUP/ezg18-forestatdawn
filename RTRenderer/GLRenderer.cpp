@@ -144,6 +144,15 @@ GLRenderer::GLRenderer()
 	
 	m_material = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
 	m_ambientIntensity = 0.1f;
+
+	std::vector<std::string> faces;
+	faces.push_back("Textures/Skybox/stormydays_rt.tga");
+	faces.push_back("Textures/Skybox/stormydays_lf.tga");
+	faces.push_back("Textures/Skybox/stormydays_up.tga");
+	faces.push_back("Textures/Skybox/stormydays_dn.tga");
+	faces.push_back("Textures/Skybox/stormydays_bk.tga");
+	faces.push_back("Textures/Skybox/stormydays_ft.tga");
+	skybox = new SkyBox(&faces);
 }
 
 void GLRenderer::Initialize(Transform* transform) {
@@ -381,16 +390,19 @@ void GLRenderer::CubeMapPass(Transform * transport, CubeMap * cubemap)
 
 void GLRenderer::RenderPass(RenderFilter filter)
 {
-	// Use the developed default shader
-	m_shader->UseShader();
-
 	// Clear buffer
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Draw skybox
+	skybox->Draw(&Camera::GetInstance()->GetViewMatrix(), &Camera::GetInstance()->GetProjectionMatrix());
+
+	// Use the developed default shader
+	m_shader->UseShader();
+
 	// Set uniforms
-	m_shader->SetProjectionMatrix(&Camera::GetInstance()->ProjectionMatrix());
-	m_shader->SetViewMatrix(&Camera::GetInstance()->CalculateViewMatrix());
+	m_shader->SetProjectionMatrix(&Camera::GetInstance()->GetProjectionMatrix());
+	m_shader->SetViewMatrix(&Camera::GetInstance()->GetViewMatrix());
 	m_shader->SetCameraPosition(&Camera::GetInstance()->GetCameraPosition());
 	m_shader->SetAmbientIntensity(m_ambientIntensity);
 	m_shader->SetMaterial(m_material);
@@ -423,7 +435,7 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	GLuint uniformModel = m_shader->GetModelLocation();
 
 	ShaderCompiler::ValidateProgram(m_shader->GetShaderID());
-
+	
 	// Render scene
 	RenderScene(filter, uniformModel);
 
@@ -434,12 +446,10 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	refractModel->Render(RenderFilter::R_ALL, uniformModel);
 
 	reflect->Read(GL_TEXTURE0 + worldReflectionUnit);
-	m_shader->SetWorldReflection(worldReflectionUnit);
 
 	m_shader->SetReflectionFactor(1.0f);
 	m_shader->SetRefractionFactor(1.0f);
 	m_shader->SetFresnelValues(1.0f, 0.0f, 0.0f);
-	//m_shader->SetIORValue(0.5f, 0.51f, 0.52f);
 	reflectModel->Render(RenderFilter::R_ALL, uniformModel);
 }
 

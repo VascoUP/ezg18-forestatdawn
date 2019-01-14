@@ -559,6 +559,29 @@ void OmnidirectionalShadowMapShader::SetLightMatrices(std::vector<glm::mat4> lig
 }
 
 
+SkyBoxShader::SkyBoxShader()
+{
+	uniformSkyBox = 0;
+	uniformViewProjectionMatrix = 0;
+}
+
+void SkyBoxShader::GetShaderUniforms()
+{
+	uniformSkyBox = GetUniformLocation("u_skybox");
+	uniformViewProjectionMatrix = GetUniformLocation("u_viewProjectionMatrix");
+}
+
+void SkyBoxShader::SetSkyBox(GLuint textureUnit)
+{
+	glUniform1i(uniformSkyBox, textureUnit);
+}
+
+void SkyBoxShader::SetViewProjectionMatrix(glm::mat4* viewProjectionMatrix)
+{
+	glUniformMatrix4fv(uniformViewProjectionMatrix, 1, GL_FALSE, glm::value_ptr(*viewProjectionMatrix));
+}
+
+
 CustomShader::CustomShader()
 {
 	shaderID = 0;

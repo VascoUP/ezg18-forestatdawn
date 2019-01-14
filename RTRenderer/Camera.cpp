@@ -33,14 +33,14 @@ void Camera::SetUp() {}
 
 void Camera::Update() {}
 
-glm::mat4 Camera::CalculateViewMatrix() {
+glm::mat4 Camera::GetViewMatrix() {
 	glm::vec3 position = transform->GetPosition();
 	glm::vec4 wPosition = transform->parent->GetWorldMatrix() * glm::vec4(position.x, position.y, position.z, 1.0f);
 	position = glm::vec3(wPosition.x, wPosition.y, wPosition.z);
 	return glm::lookAt(position, position + transform->GetFront(), transform->GetUp());
 }
 
-glm::mat4 Camera::ProjectionMatrix() {
+glm::mat4 Camera::GetProjectionMatrix() {
 	return projectionMatrix;
 }
 

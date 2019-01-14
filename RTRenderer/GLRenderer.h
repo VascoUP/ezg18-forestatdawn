@@ -14,6 +14,7 @@
 #include "Material.h"
 #include "Light.h"
 #include "CubeMap.h"
+#include "SkyBox.h"
 
 class GLObject
 {
@@ -75,6 +76,8 @@ private:
 	unsigned int Counter = 0;
 	unsigned int DrawAtDelta = 12;
 	CubeMapRenderShader* m_cubemapShader;
+
+	SkyBox* skybox;
 
 	bool m_directionalLightPassDone = false;
 	Material* m_material;

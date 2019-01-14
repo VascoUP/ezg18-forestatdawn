@@ -311,6 +311,23 @@ protected:
 	void GetShaderUniforms();
 };
 
+class SkyBoxShader :
+	public StandardShader
+{
+private:
+	GLuint uniformSkyBox;
+	GLuint uniformViewProjectionMatrix;
+
+public:
+	SkyBoxShader();
+
+	void SetSkyBox(GLuint textureUnit);
+	void SetViewProjectionMatrix(glm::mat4* viewProjectionMatrix);
+
+protected:
+	void GetShaderUniforms();
+};
+
 class CustomShader 
 	: public StandardShader
 {

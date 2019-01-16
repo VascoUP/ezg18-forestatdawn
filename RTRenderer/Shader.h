@@ -49,15 +49,9 @@ public:
 	bool CreateFromFiles(const char* vertexFile, const char* fragmentFile, const char* geometryFile = nullptr);
 };
 
-class DefaultShader :
-	public StandardShader
-{
-private:
-	// -- Transformation --
-	// Projection matrix
-	GLuint uniformProjection;
-	// View matrix
-	GLuint uniformView;
+class LightedShader :
+	public StandardShader {
+protected:
 	// Model matrix
 	GLuint uniformModel;
 
@@ -72,7 +66,6 @@ private:
 	// -- Ambiente Light --
 	// Ambient light intensity
 	GLuint uniformAmbientIntensity;
-
 
 	// -- Directional light --
 	struct {
@@ -120,6 +113,41 @@ private:
 		GLuint uniformEdge;
 	} uniformSpotLights[MAX_SPOT_LIGHTS];
 
+	// -- Material --
+	struct {
+		GLuint uniformSpecularIntensity;
+		GLuint uniformShininess;
+		GLuint uniformAlbedo;
+	} uniformMaterial;
+
+public:
+	LightedShader();
+
+	// Getter for uniformModel
+	GLuint GetModelLocation();
+
+	void SetCameraPosition(glm::vec3 * cPosition);
+	void SetAmbientIntensity(GLfloat aIntensity);
+	void SetDirectionalLight(DirectionalLight* light);
+	virtual void SetPointLights(PointLight** pLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
+	virtual void SetSpotLights(SpotLight** sLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
+	void SetMaterial(Material* mat);
+	void SetTexutre(GLuint textureUnit);
+
+protected:
+	void GetShaderUniforms();
+};
+
+class DefaultShader :
+	public LightedShader
+{
+private:
+	// -- Transformation --
+	// Projection matrix
+	GLuint uniformProjection;
+	// View matrix
+	GLuint uniformView;
+	
 	// -- Shadow maps --
 	struct {
 		GLuint uniformStaticShadowMap;
@@ -133,13 +161,6 @@ private:
 		GLuint uniformFarPlane;
 	} uniformOmniSM[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
 
-	// -- Material --
-	struct {
-		GLuint uniformSpecularIntensity;
-		GLuint uniformShininess;
-		GLuint uniformAlbedo;
-	} uniformMaterial;
-
 	// -- Reflection --
 	GLuint uniformWorldReflection;
 	GLuint uniformReflectionFactor;
@@ -149,19 +170,11 @@ private:
 
 public:
 	DefaultShader();
-
-	// Getter for uniformModel
-	GLuint GetModelLocation();
-
+	
 	void SetProjectionMatrix(glm::mat4 * pMatrix);
 	void SetViewMatrix(glm::mat4 * vMatrix);
-	void SetCameraPosition(glm::vec3 * cPosition);
-	void SetAmbientIntensity(GLfloat aIntensity);
-	void SetDirectionalLight(DirectionalLight* light);
 	void SetPointLights(PointLight** pLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
 	void SetSpotLights(SpotLight** sLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
-	void SetMaterial(Material* mat);
-	void SetTexutre(GLuint textureUnit);
 	void SetDirectionalStaticSM(GLuint textureUnit);
 	void SetDirectionalDynamicSM(GLuint textureUnit);
 	void SetDirectionalLightTransform(glm::mat4 * lTransform);
@@ -176,92 +189,14 @@ protected:
 };
 
 class CubeMapRenderShader :
-	public StandardShader {
+	public LightedShader {
 private:
 	// -- Transformation --
 	GLuint uniformViewProjectionMatrices[6];
-	// Model matrix
-	GLuint uniformModel;
-
-	// -- Camera --
-	// Camera Position
-	GLuint uniformCameraPosition;
-
-	// -- Texture --
-	// Texture
-	GLuint uniformTexture;
-
-	// -- Ambiente Light --
-	// Ambient light intensity
-	GLuint uniformAmbientIntensity;
-
-	// -- Directional light --
-	struct {
-		// Directional light diffuse color
-		GLuint uniformDiffuseColor;
-		// Directional light diffuse factor
-		GLuint uniformDiffuseFactor;
-		// Directional light diffuse color
-		GLuint uniformSpecularColor;
-		// Directional light diffuse factor
-		GLuint uniformSpecularFactor;
-		// Directional light direction
-		GLuint uniformDirection;
-	} uniformDirectionalLight;
-
-	// -- Point Lights --
-	int pointLightCount;
-	GLuint uniformPointLightCount;
-	struct {
-		GLuint uniformDiffuseColor;
-		GLuint uniformDiffuseFactor;
-		GLuint uniformSpecularColor;
-		GLuint uniformSpecularFactor;
-
-		GLuint uniformPosition;
-		GLuint uniformConstant;
-		GLuint uniformLinear;
-		GLuint uniformExponent;
-	} uniformPointLights[MAX_POINT_LIGHTS];
-
-	int spotLightCount;
-	GLuint uniformSpotLightCount;
-	struct {
-		GLuint uniformDiffuseColor;
-		GLuint uniformDiffuseFactor;
-		GLuint uniformSpecularColor;
-		GLuint uniformSpecularFactor;
-
-		GLuint uniformPosition;
-		GLuint uniformConstant;
-		GLuint uniformLinear;
-		GLuint uniformExponent;
-
-		GLuint uniformDirection;
-		GLuint uniformEdge;
-	} uniformSpotLights[MAX_SPOT_LIGHTS];
-
-	// -- Material --
-	struct {
-		GLuint uniformSpecularIntensity;
-		GLuint uniformShininess;
-		GLuint uniformAlbedo;
-	} uniformMaterial;
-
 public:
 	CubeMapRenderShader();
 
-	// Getter for uniformModel
-	GLuint GetModelLocation();
-
 	void SetViewProjectMatrices(std::vector<glm::mat4> lightMatrices);
-	void SetCameraPosition(glm::vec3 * cPosition);
-	void SetAmbientIntensity(GLfloat aIntensity);
-	void SetDirectionalLight(DirectionalLight* light);
-	void SetPointLights(PointLight** pLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
-	void SetSpotLights(SpotLight** sLight, unsigned int lightCount, unsigned int textureUnit, unsigned int offset);
-	void SetMaterial(Material* mat);
-	void SetTexutre(GLuint textureUnit);
 
 protected:
 	void GetShaderUniforms();

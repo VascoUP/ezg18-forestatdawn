@@ -21,7 +21,7 @@ void Time::Update() {
 
 	mFPS++;
 	if (mTime - (GLfloat)mSecondsCounter >= 1.0) {
-		printf("FPS: %d\n", mFPS);
+		//printf("FPS: %d\n", mFPS);
 		mFPS = 0;
 		mSecondsCounter++;
 	}

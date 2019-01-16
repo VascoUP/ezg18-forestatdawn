@@ -1,13 +1,23 @@
 #include "GLRenderer.h"
 
-Transform* refractTransform;
-Transform* reflectTransform;
-CubeMap* refract;
-CubeMap* reflect;
+bool RenderMesh(Mesh* mesh, GLObject* meshRenderer, RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr) {
+	if (!meshRenderer->FilterPass(filter))
+		return false;
 
-GLObject::GLObject(Transform *transform, size_t modelIndex)
+	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(meshRenderer->GetTransformMatrix()));
+	
+	if (shader != nullptr)
+		meshRenderer->UseMaterial(shader);
+
+	mesh->Render();
+	return true;
+}
+
+
+GLObject::GLObject(Transform *transform, Material* material, size_t modelIndex)
 {
 	m_transform = transform;
+	m_material = material;
 	m_modelIndex = modelIndex;
 }
 
@@ -16,6 +26,11 @@ bool GLObject::FilterPass(RenderFilter filter)
 	return (filter == R_ALL ||
 		(filter == R_DYNAMIC && !m_transform->GetStatic()) ||
 		(filter == R_STATIC && m_transform->GetStatic()));
+}
+
+void GLObject::UseMaterial(LightedShader * shader)
+{
+	shader->SetMaterial(m_material);
 }
 
 size_t GLObject::GetModelIndex() const
@@ -28,6 +43,11 @@ glm::mat4 GLObject::GetTransformMatrix() const
 	return m_transform->TransformMatrix(true);
 }
 
+GLObject::~GLObject()
+{
+	delete m_transform;
+	//delete m_material;
+}
 
 
 void GLObjectRenderer::AddMeshRenderer(GLObject * meshRenderer)
@@ -37,12 +57,11 @@ void GLObjectRenderer::AddMeshRenderer(GLObject * meshRenderer)
 
 void GLObjectRenderer::Clear()
 {
-	for (size_t i = 0; i < m_objects.size(); i++) {
-		free(m_objects[i]);
-	}
+	for (size_t i = 0; i < m_objects.size(); i++)
+		delete m_objects[i];
 	m_objects.clear();
 	if(m_renderable)
-		free(m_renderable);
+		delete m_renderable;
 	m_renderable = nullptr;
 }
 
@@ -52,24 +71,12 @@ GLObjectRenderer::~GLObjectRenderer()
 }
 
 
-
-bool RenderMesh(Mesh* mesh, GLObject* meshRenderer, RenderFilter filter, GLuint uniformModel) {
-	if (!meshRenderer->FilterPass(filter))
-		return false;
-
-	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(meshRenderer->GetTransformMatrix()));
-	mesh->Render();
-	return true;
-}
-
-
-
 void GLModelRenderer::SetRenderable(Model * renderable)
 {
 	m_renderable = renderable;
 }
 
-void GLModelRenderer::Render(RenderFilter filter, GLuint uniformModel)
+void GLModelRenderer::Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader)
 {
 	Model* model = (Model*)m_renderable;
 
@@ -85,7 +92,7 @@ void GLModelRenderer::Render(RenderFilter filter, GLuint uniformModel)
 	// -- Draw first mesh of each model --
 	std::vector<GLObject*> renderableMeshes;
 	for (size_t j = 0; j < m_objects.size(); j++) {
-		if (RenderMesh(mesh, m_objects[j], filter, uniformModel))
+		if (RenderMesh(mesh, m_objects[j], filter, uniformModel, shader))
 			renderableMeshes.push_back(m_objects[j]);
 	}
 
@@ -104,7 +111,7 @@ void GLModelRenderer::Render(RenderFilter filter, GLuint uniformModel)
 			tex->UseTexture();
 
 		for (size_t j = 0; j < renderableMeshes.size(); j++) {
-			RenderMesh(mesh, renderableMeshes[j], filter, uniformModel);
+			RenderMesh(mesh, renderableMeshes[j], filter, uniformModel, shader);
 		}
 	}
 }
@@ -116,7 +123,7 @@ void GLMeshRenderer::SetRenderable(Mesh * renderable)
 	m_renderable = renderable;
 }
 
-void GLMeshRenderer::Render(RenderFilter filter, GLuint uniformModel)
+void GLMeshRenderer::Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader)
 {
 	Mesh* mesh = (Mesh*)m_renderable;
 	Texture* tex = mesh->GetTexture();
@@ -124,7 +131,7 @@ void GLMeshRenderer::Render(RenderFilter filter, GLuint uniformModel)
 		tex->UseTexture();
 
 	for (size_t i = 0; i < m_objects.size(); i++) {
-		RenderMesh(mesh, m_objects[i], filter, uniformModel);
+		RenderMesh(mesh, m_objects[i], filter, uniformModel, shader);
 	}
 }
 
@@ -142,7 +149,6 @@ GLRenderer::GLRenderer()
 	m_cubemapShader = new CubeMapRenderShader();
 	m_cubemapShader->CreateFromFiles("Shaders/envReflection.vert", "Shaders/envReflection.frag", "Shaders/envReflection.geom");
 	
-	m_material = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
 	m_ambientIntensity = 0.1f;
 
 	std::vector<std::string> faces;
@@ -156,6 +162,8 @@ GLRenderer::GLRenderer()
 }
 
 void GLRenderer::Initialize(Transform* transform) {
+	Material* mat = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
+	
 	Model* mMesh = new Model("Models/Sphere.obj");
 	mMesh->Load();
 	refractModel = new GLModelRenderer();
@@ -164,17 +172,18 @@ void GLRenderer::Initialize(Transform* transform) {
 	refractTransform = new Transform(transform);
 	refractTransform->Scale(0.2f);
 	refractTransform->Translate(glm::vec3(0.0f, 0.5f, 0.0f));
-	refractModel->AddMeshRenderer(new GLObject(refractTransform, mMesh->GetIndex()));
+	refractModel->AddMeshRenderer(new GLObject(refractTransform, mat, mMesh->GetIndex()));
 
 	mMesh = new Model("Models/Sphere.obj");
 	mMesh->Load();
 	reflectModel = new GLModelRenderer();
 	reflectModel->SetRenderable(mMesh);
 
+
 	reflectTransform = new Transform(transform);
 	reflectTransform->Scale(0.2f);
 	reflectTransform->Translate(glm::vec3(-5.0f, 1.0f, 0.0f));
-	reflectModel->AddMeshRenderer(new GLObject(reflectTransform, mMesh->GetIndex()));
+	reflectModel->AddMeshRenderer(new GLObject(reflectTransform, mat, mMesh->GetIndex()));
 
 	refract = new CubeMap(0.01f, 100.0f);
 	refract->ReadyCubemap(glm::distance(Camera::GetInstance()->GetCameraPosition(), refractTransform->GetPosition()));
@@ -254,9 +263,9 @@ bool GLRenderer::DynamicMeshes() {
 	//return false;
 }
 
-void GLRenderer::RenderScene(RenderFilter filter, GLuint uniformModel) {
+void GLRenderer::RenderScene(RenderFilter filter, GLuint uniformModel, LightedShader* shader) {
 	for (size_t i = 0; i < m_renderables.size(); i++)
-		m_renderables[i]->Render(filter, uniformModel);
+		m_renderables[i]->Render(filter, uniformModel, shader);
 }
 
 void GLRenderer::DirectionalSMPass(RenderFilter filter)
@@ -370,7 +379,7 @@ void GLRenderer::CubeMapPass(Transform * transport, CubeMap * cubemap)
 			cubemap->GetFar()));
 	m_cubemapShader->SetCameraPosition(&glm::vec3(transport->GetPosition().x, transport->GetPosition().y, transport->GetPosition().z));
 	m_cubemapShader->SetAmbientIntensity(m_ambientIntensity);
-	m_cubemapShader->SetMaterial(m_material);
+	//m_cubemapShader->SetMaterial(m_material);
 	m_cubemapShader->SetDirectionalLight(m_directionalLight);
 	m_cubemapShader->SetPointLights(&m_pointLights[0], m_pointLightsCount, 4, 0);
 	m_cubemapShader->SetSpotLights(&m_spotLights[0], m_spotLightsCount, 4 + m_pointLightsCount, m_pointLightsCount);
@@ -380,9 +389,9 @@ void GLRenderer::CubeMapPass(Transform * transport, CubeMap * cubemap)
 	GLuint uniformModel = m_cubemapShader->GetModelLocation();
 
 	ShaderCompiler::ValidateProgram(m_cubemapShader->GetShaderID());
-
+	
 	// Render scene
-	RenderScene(RenderFilter::R_ALL, uniformModel);
+	RenderScene(RenderFilter::R_ALL, uniformModel, m_cubemapShader);
 
 	// Re-bind framebuffer to the default one
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -405,7 +414,7 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	m_shader->SetViewMatrix(&Camera::GetInstance()->GetViewMatrix());
 	m_shader->SetCameraPosition(&Camera::GetInstance()->GetCameraPosition());
 	m_shader->SetAmbientIntensity(m_ambientIntensity);
-	m_shader->SetMaterial(m_material);
+	//m_shader->SetMaterial(m_material);
 	m_shader->SetReflectionFactor(0.0f);
 	m_shader->SetRefractionFactor(0.0f);
 	m_shader->SetFresnelValues(0.0f, 0.0f, 0.0f);
@@ -437,20 +446,20 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	ShaderCompiler::ValidateProgram(m_shader->GetShaderID());
 	
 	// Render scene
-	RenderScene(filter, uniformModel);
+	RenderScene(filter, uniformModel, m_shader);
 
 	m_shader->SetReflectionFactor(1.0f);
 	m_shader->SetRefractionFactor(1.0f);
 	m_shader->SetFresnelValues(0.0f, 0.9f, 1.0f);
 	m_shader->SetIORValue(0.5f, 0.51f, 0.52f);
-	refractModel->Render(RenderFilter::R_ALL, uniformModel);
+	refractModel->Render(RenderFilter::R_ALL, uniformModel, m_shader);
 
 	reflect->Read(GL_TEXTURE0 + worldReflectionUnit);
 
 	m_shader->SetReflectionFactor(1.0f);
 	m_shader->SetRefractionFactor(1.0f);
 	m_shader->SetFresnelValues(1.0f, 0.0f, 0.0f);
-	reflectModel->Render(RenderFilter::R_ALL, uniformModel);
+	reflectModel->Render(RenderFilter::R_ALL, uniformModel, m_shader);
 }
 
 void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter)

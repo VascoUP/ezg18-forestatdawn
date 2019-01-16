@@ -231,86 +231,125 @@ void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow) 
 	transform->Scale(0.5f);
 	transform->Translate(glm::vec3(0.0f, 10.0f, 0.0f));
 	transform->Rotate(-1.57f, 3.14f, 0.0f);
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 0));
-	transform->AddUpdatable(new ObjectController(transform, 7.0f, 1.0f));
+	Material* mat = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 0));
+	transform->AddUpdatable(new HelicopterController(transform, 7.0f, 1.0f));
 
 	// -- Type 1 trees --
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(10.0f, 0.0f, 0.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(-1.0f, 0.0f, 5.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(2.0f, 0.0f, -3.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(2.0f, 0.0f, 10.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(5.0f, 0.0f, 5.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	// -- Type 2 trees --
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(0.0f, 0.0f, 2.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(3.0f, 0.0f, -1.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(-5.0f, 0.0f, 1.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(2.0f, 0.0f, -5.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(3.0f, 0.0f, 8.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(7.0f, 0.0f, -2.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(8.0f, 0.0f, 2.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(6.0f, 0.0f, -5.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+	mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
-	// -- Terrain --
-	TerrainMesh* terrain = TerrainMesh::CreateInstance();
-	GLMeshRenderer* renderer = new GLMeshRenderer();
-	renderer->SetRenderable(terrain);
-	meshRenderer->AddObjectRenderer(renderer);
-
-	transform = new Transform(root);
-	meshRenderer->AddMeshRenderer(new GLObject(transform, terrain->GetIndex()));
+	{
+		// -- Terrain --
+		TerrainMesh* terrain = TerrainMesh::CreateInstance();
+		GLMeshRenderer* renderer = new GLMeshRenderer();
+		renderer->SetRenderable(terrain);
+		meshRenderer->AddObjectRenderer(renderer);
+		transform = new Transform(root);
+		mat = new Material(0.2f, 16, 1.0f, 1.0f, 1.0f);
+		meshRenderer->AddMeshRenderer(new GLObject(transform, mat, terrain->GetIndex()));
+	}
 
 	// Camera object is not static
 	transform = new Transform(root);
 	transform->SetStatic(false);
 	transform->Translate(glm::vec3(0.0f, 5.0f, -5.0f));
 	transform->AddUpdatable(Camera::CreateInstance(transform, glWindow));
-	transform->AddUpdatable(new CameraController(transform, Camera::GetInstance(), 5.0f, 5.0f));
+	transform->AddUpdatable(new CameraController(transform, 5.0f, 5.0f));
+	transform->AddUpdatable(new PrintKeyFram(transform));
+	//std::vector<KeyFrame>* cameraKeyFrames = new std::vector<KeyFrame>();
+	//KeyFrame* kf = new KeyFrame(); kf->deltaTime = 0.0f;
+	//kf->position = glm::vec3(-0.996490f, 2.515669f, -3.033350f); kf->rotation = glm::vec3(0.758642f, 0.134519f, 0.000000f);
+	//cameraKeyFrames->push_back(*kf); 
+	//kf = new KeyFrame(); kf->deltaTime = 5.0f;
+	//kf->position = glm::vec3(-1.505912f, 1.296978f, -0.267661f); kf->rotation = glm::vec3(0.178989f, -1.274950f, 0.000000f);
+	//cameraKeyFrames->push_back(*kf); 
+	//kf = new KeyFrame(); kf->deltaTime = 5.0f;
+	//kf->position = glm::vec3(-2.715569f, 1.604647f, 2.135848f); kf->rotation = glm::vec3(0.389617f, -8.451337f, 0.000000f);
+	//cameraKeyFrames->push_back(*kf); 
+	//kf = new KeyFrame(); kf->deltaTime = 5.0f;
+	//kf->position = glm::vec3(-7.685143f, 2.156667f, -0.090970f); kf->rotation = glm::vec3(0.585006f, -11.140243f, 0.000000f);
+	//cameraKeyFrames->push_back(*kf); 
+	//kf = new KeyFrame(); kf->deltaTime = 5.0f;
+	//kf->position = glm::vec3(-2.473112f, 1.299403f, -3.737890f); kf->rotation = glm::vec3(-0.111726f, -10.858301f, 0.000000f);
+	//cameraKeyFrames->push_back(*kf); 
+	//kf = new KeyFrame(); kf->deltaTime = 5.0f;
+	//kf->position = glm::vec3(10.915294f, 1.020687f, 1.661051f); kf->rotation = glm::vec3(0.231739f, -14.506601f, 0.000000f);
+	//cameraKeyFrames->push_back(*kf);
+	//transform->AddUpdatable(new CinematicCameraController(transform, cameraKeyFrames));
 }
 
 void SceneLoader::Load(const char* filename, GLRenderer * meshRenderer, Transform* rootObject, GLWindow* glWindow) {

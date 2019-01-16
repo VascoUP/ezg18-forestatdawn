@@ -20,13 +20,17 @@ class GLObject
 {
 private:
 	Transform* m_transform;
+	Material* m_material;
 	size_t m_modelIndex;
 public:
-	GLObject(Transform *transform, size_t modelIndex);
+	GLObject(Transform *transform, Material* material, size_t modelIndex);
 
 	bool FilterPass(RenderFilter filter);
+	void UseMaterial(LightedShader* shader);
 	size_t GetModelIndex() const;
 	glm::mat4 GetTransformMatrix() const;
+
+	~GLObject();
 };
 
 class GLObjectRenderer {
@@ -36,7 +40,7 @@ protected:
 	IRenderable* m_renderable;
 	std::vector<GLObject*> m_objects;
 public:
-	virtual void Render(RenderFilter filter, GLuint uniformModel) = 0;
+	virtual void Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr) = 0;
 
 	void AddMeshRenderer(GLObject* meshRenderer);
 	void SetIndex(size_t index) { m_renderable->SetIndex(index); }
@@ -50,7 +54,7 @@ class GLModelRenderer
 {
 public:
 	void SetRenderable(Model* renderable);
-	void Render(RenderFilter filter, GLuint uniformModel);
+	void Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr);
 };
 
 class GLMeshRenderer
@@ -58,7 +62,7 @@ class GLMeshRenderer
 {
 public:
 	void SetRenderable(Mesh* renderable);
-	void Render(RenderFilter filter, GLuint uniformModel);
+	void Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr);
 };
 
 class GLRenderer
@@ -76,11 +80,14 @@ private:
 	unsigned int Counter = 0;
 	unsigned int DrawAtDelta = 12;
 	CubeMapRenderShader* m_cubemapShader;
+	Transform* refractTransform;
+	Transform* reflectTransform;
+	CubeMap* refract;
+	CubeMap* reflect;
 
 	SkyBox* skybox;
 
 	bool m_directionalLightPassDone = false;
-	Material* m_material;
 
 	GLfloat m_ambientIntensity;
 
@@ -112,7 +119,7 @@ public:
 
 private:
 	bool DynamicMeshes();
-	void RenderScene(RenderFilter filter, GLuint uniformModel);
+	void RenderScene(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr);
 	void DirectionalSMPass(RenderFilter filter);
 	void OmnidirectionalSMPass(PointLight* light, RenderFilter filter);
 	void CubeMapPass(Transform* transport, CubeMap* cubemap);

@@ -38,8 +38,6 @@ struct SpotLight
 	float edge;
 };
 
-
-// --New lighting model
 struct FragParams {
 	// Fragment position
 	vec3 frag_Position;
@@ -53,9 +51,9 @@ struct Material {
 	float specularIntensity;
 	float shininess;
 	vec3 albedo;
+	sampler2D albedoTexture;
 };
 
-uniform	Material u_material;
 uniform vec3 u_cameraPosition;
 
 uniform float u_ambientFactor;
@@ -65,7 +63,7 @@ uniform int u_pointLightsCount = 0;
 uniform SpotLight u_spotLights[MAX_SPOT_LIGHTS];
 uniform int u_spotLightsCount = 0;
 
-uniform sampler2D u_mainTexture;
+uniform	Material u_material;
 
 float CalculateAttenuation(float dist, float falloffStart, float falloffEnd)
 {
@@ -151,8 +149,8 @@ vec4 CalculateSpotLights(FragParams frag, vec3 matColor, float matShininess, Spo
 
 void main()
 {
-	vec4 textColor = texture(u_mainTexture, geo_texCoord);
-	if(textColor.a <= 0.5)
+	vec4 tColor = texture(u_material.albedoTexture, geo_texCoord);
+	if(tColor.a < 0.5)
 		discard;
 
 	FragParams frag;
@@ -165,5 +163,5 @@ void main()
 	vec4 slsColor = CalculateSpotLights(frag, u_material.albedo, u_material.shininess, u_spotLights, u_spotLightsCount);
 	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0);
 	
-	frag_color = textColor * clamp( dlColor + plsColor + slsColor + aColor, 0.0, 1.0 );
+	frag_color = tColor * clamp( dlColor + plsColor + slsColor + aColor, 0.0, 1.0 );
 }

@@ -165,7 +165,7 @@ void GLCubeMapRenderer::Initialize(Transform* transform) {
 	m_reflectTransform->Scale(0.2f);
 	m_reflectTransform->Translate(glm::vec3(-5.0f, 1.0f, 0.0f));
 	m_reflectModel->AddMeshRenderer(new GLObject(m_reflectTransform, mat, mMesh->GetIndex()));
-
+	
 	m_refract = new CubeMap(0.01f, 100.0f);
 	m_refract->ReadyCubemap(glm::distance(Camera::GetInstance()->GetCameraPosition(), m_refractTransform->GetPosition()));
 	m_reflect = new CubeMap(0.01f, 100.0f);
@@ -200,6 +200,14 @@ void GLCubeMapRenderer::Render(DefaultShader* shader, GLuint uniformModel, GLuin
 	shader->SetRefractionFactor(1.0f);
 	shader->SetFresnelValues(1.0f, 0.0f, 0.0f);
 	m_reflectModel->Render(RenderFilter::R_ALL, uniformModel, shader);
+}
+
+GLCubeMapRenderer::~GLCubeMapRenderer()
+{
+	delete m_reflectModel;
+	delete m_refractModel;
+	delete m_refract;
+	delete m_reflect;
 }
 
 

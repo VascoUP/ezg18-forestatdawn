@@ -85,8 +85,8 @@ public:
 	void CubeMapPass(GLRenderer* glRenderer);
 	void RenderModels(GLuint uniformModel, LightedShader* shader = nullptr);
 	void Render(DefaultShader* shader, GLuint uniformModel, GLuint textureUnit);
-
-private:
+	
+	~GLCubeMapRenderer();
 };
 
 class GLRenderer

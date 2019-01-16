@@ -65,9 +65,33 @@ public:
 	void Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr);
 };
 
+class GLCubeMapRenderer {
+private:
+	CubeMapRenderShader* m_cubemapShader;
+	GLModelRenderer* m_refractModel;
+	GLModelRenderer* m_reflectModel;
+	Transform* m_refractTransform;
+	Transform* m_reflectTransform;
+	CubeMap* m_refract;
+	CubeMap* m_reflect;
+	
+public:
+	GLCubeMapRenderer();
+
+	void Initialize(Transform* transform);
+
+	void CubeMapPass(GLRenderer* glRenderer);
+	void RenderModels(GLuint uniformModel, LightedShader* shader = nullptr);
+	void Render(DefaultShader* shader, GLuint uniformModel, GLuint textureUnit);
+
+private:
+};
+
 class GLRenderer
 {
 private:
+	friend class GLCubeMapRenderer;
+
 	std::vector<GLObjectRenderer*> m_renderables;
 	std::vector<Texture*> m_textures;
 
@@ -75,17 +99,9 @@ private:
 	DirectionalShadowMapShader* m_directionalSMShader;
 	OmnidirectionalShadowMapShader* m_omnidirectionalSMShader;
 
-	GLModelRenderer* refractModel;
-	GLModelRenderer* reflectModel;
-	unsigned int Counter = 0;
-	unsigned int DrawAtDelta = 12;
-	CubeMapRenderShader* m_cubemapShader;
-	Transform* refractTransform;
-	Transform* reflectTransform;
-	CubeMap* refract;
-	CubeMap* reflect;
+	GLCubeMapRenderer* m_cubemapRenderer;
 
-	SkyBox* skybox;
+	SkyBox* m_skybox;
 
 	bool m_directionalLightPassDone = false;
 
@@ -122,6 +138,6 @@ private:
 	void RenderScene(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr);
 	void DirectionalSMPass(RenderFilter filter);
 	void OmnidirectionalSMPass(PointLight* light, RenderFilter filter);
-	void CubeMapPass(Transform* transport, CubeMap* cubemap);
+	void CubeMapPass(Transform* transport, CubeMapRenderShader* shader, CubeMap* cubemap);
 	void RenderPass(RenderFilter filter);
 };

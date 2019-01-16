@@ -136,6 +136,73 @@ void GLMeshRenderer::Render(RenderFilter filter, GLuint uniformModel, LightedSha
 }
 
 
+GLCubeMapRenderer::GLCubeMapRenderer()
+{
+	m_cubemapShader = new CubeMapRenderShader();
+	m_cubemapShader->CreateFromFiles("Shaders/envReflection.vert", "Shaders/envReflection.frag", "Shaders/envReflection.geom");
+
+}
+
+void GLCubeMapRenderer::Initialize(Transform* transform) {
+	Material* mat = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
+
+	Model* mMesh = new Model("Models/Sphere.obj");
+	mMesh->Load();
+	m_refractModel = new GLModelRenderer();
+	m_refractModel->SetRenderable(mMesh);
+
+	m_refractTransform = new Transform(transform);
+	m_refractTransform->Scale(0.2f);
+	m_refractTransform->Translate(glm::vec3(0.0f, 0.5f, 0.0f));
+	m_refractModel->AddMeshRenderer(new GLObject(m_refractTransform, mat, mMesh->GetIndex()));
+
+	mMesh = new Model("Models/Sphere.obj");
+	mMesh->Load();
+	m_reflectModel = new GLModelRenderer();
+	m_reflectModel->SetRenderable(mMesh);
+
+
+	m_reflectTransform = new Transform(transform);
+	m_reflectTransform->Scale(0.2f);
+	m_reflectTransform->Translate(glm::vec3(-5.0f, 1.0f, 0.0f));
+	m_reflectModel->AddMeshRenderer(new GLObject(m_reflectTransform, mat, mMesh->GetIndex()));
+
+	m_refract = new CubeMap(0.01f, 100.0f);
+	m_refract->ReadyCubemap(glm::distance(Camera::GetInstance()->GetCameraPosition(), m_refractTransform->GetPosition()));
+	m_reflect = new CubeMap(0.01f, 100.0f);
+	m_reflect->ReadyCubemap(glm::distance(Camera::GetInstance()->GetCameraPosition(), m_refractTransform->GetPosition()));
+}
+
+void GLCubeMapRenderer::CubeMapPass(GLRenderer* glRenderer)
+{
+	glRenderer->CubeMapPass(m_refractTransform, m_cubemapShader, m_refract);
+	glRenderer->CubeMapPass(m_reflectTransform, m_cubemapShader, m_reflect);
+}
+
+void GLCubeMapRenderer::RenderModels(GLuint uniformModel, LightedShader* shader)
+{
+	m_refractModel->Render(RenderFilter::R_ALL, uniformModel, shader);
+	m_reflectModel->Render(RenderFilter::R_ALL, uniformModel, shader);
+}
+
+void GLCubeMapRenderer::Render(DefaultShader* shader, GLuint uniformModel, GLuint textureUnit)
+{
+	m_refract->Read(GL_TEXTURE0 + textureUnit);
+
+	shader->SetReflectionFactor(1.0f);
+	shader->SetRefractionFactor(1.0f);
+	shader->SetFresnelValues(0.0f, 0.9f, 1.0f);
+	shader->SetIORValue(0.5f, 0.51f, 0.52f);
+	m_refractModel->Render(RenderFilter::R_ALL, uniformModel, shader);
+
+	m_reflect->Read(GL_TEXTURE0 + textureUnit);
+
+	shader->SetReflectionFactor(1.0f);
+	shader->SetRefractionFactor(1.0f);
+	shader->SetFresnelValues(1.0f, 0.0f, 0.0f);
+	m_reflectModel->Render(RenderFilter::R_ALL, uniformModel, shader);
+}
+
 
 GLRenderer::GLRenderer()
 {
@@ -146,8 +213,6 @@ GLRenderer::GLRenderer()
 	m_directionalSMShader->CreateFromFiles("Shaders/dSM.vert", "Shaders/dSM.frag");
 	m_omnidirectionalSMShader = new OmnidirectionalShadowMapShader();
 	m_omnidirectionalSMShader->CreateFromFiles("Shaders/omniSM.vert", "Shaders/omniSM.frag", "Shaders/omniSM.geom");
-	m_cubemapShader = new CubeMapRenderShader();
-	m_cubemapShader->CreateFromFiles("Shaders/envReflection.vert", "Shaders/envReflection.frag", "Shaders/envReflection.geom");
 	
 	m_ambientIntensity = 0.1f;
 
@@ -158,37 +223,13 @@ GLRenderer::GLRenderer()
 	faces.push_back("Textures/Skybox/miramar_dn.tga");
 	faces.push_back("Textures/Skybox/miramar_bk.tga");
 	faces.push_back("Textures/Skybox/miramar_ft.tga");
-	skybox = new SkyBox(&faces);
+	m_skybox = new SkyBox(&faces);
+
+	m_cubemapRenderer = new GLCubeMapRenderer();
 }
 
 void GLRenderer::Initialize(Transform* transform) {
-	Material* mat = new Material(0.8f, 256, 1.0f, 1.0f, 1.0f);
-	
-	Model* mMesh = new Model("Models/Sphere.obj");
-	mMesh->Load();
-	refractModel = new GLModelRenderer();
-	refractModel->SetRenderable(mMesh);
-
-	refractTransform = new Transform(transform);
-	refractTransform->Scale(0.2f);
-	refractTransform->Translate(glm::vec3(0.0f, 0.5f, 0.0f));
-	refractModel->AddMeshRenderer(new GLObject(refractTransform, mat, mMesh->GetIndex()));
-
-	mMesh = new Model("Models/Sphere.obj");
-	mMesh->Load();
-	reflectModel = new GLModelRenderer();
-	reflectModel->SetRenderable(mMesh);
-
-
-	reflectTransform = new Transform(transform);
-	reflectTransform->Scale(0.2f);
-	reflectTransform->Translate(glm::vec3(-5.0f, 1.0f, 0.0f));
-	reflectModel->AddMeshRenderer(new GLObject(reflectTransform, mat, mMesh->GetIndex()));
-
-	refract = new CubeMap(0.01f, 100.0f);
-	refract->ReadyCubemap(glm::distance(Camera::GetInstance()->GetCameraPosition(), refractTransform->GetPosition()));
-	reflect = new CubeMap(0.01f, 100.0f);
-	reflect->ReadyCubemap(glm::distance(Camera::GetInstance()->GetCameraPosition(), refractTransform->GetPosition()));
+	m_cubemapRenderer->Initialize(transform);
 }
 
 std::vector<Texture*> GLRenderer::GetTextures()
@@ -304,8 +345,7 @@ void GLRenderer::DirectionalSMPass(RenderFilter filter)
 	// Render scene
 	RenderScene(filter, uniformModel);
 
-	refractModel->Render(RenderFilter::R_ALL, uniformModel);
-	reflectModel->Render(RenderFilter::R_ALL, uniformModel);
+	m_cubemapRenderer->RenderModels(uniformModel);
 
 	// Re-bind framebuffer to the default one
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -349,17 +389,16 @@ void GLRenderer::OmnidirectionalSMPass(PointLight* light, RenderFilter filter)
 	// Render scene
 	RenderScene(filter, uniformModel);
 
-	refractModel->Render(RenderFilter::R_ALL, uniformModel);
-	reflectModel->Render(RenderFilter::R_ALL, uniformModel);
+	m_cubemapRenderer->RenderModels(uniformModel);
 
 	// Re-bind framebuffer to the default one
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void GLRenderer::CubeMapPass(Transform * transport, CubeMap * cubemap)
+void GLRenderer::CubeMapPass(Transform * transport, CubeMapRenderShader* shader, CubeMap * cubemap)
 {
 	// Use the directional light shadow map
-	m_cubemapShader->UseShader();
+	shader->UseShader();
 
 	// Set viewport to be the directional light shadow map
 	glViewport(0, 0, cubemap->GetShadowWidth(), cubemap->GetShadowHeight());
@@ -372,26 +411,25 @@ void GLRenderer::CubeMapPass(Transform * transport, CubeMap * cubemap)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Set uniforms
-	m_cubemapShader->SetViewProjectMatrices(
+	shader->SetViewProjectMatrices(
 		transport->GetCubeViewProjectionMatrices(
 			cubemap->GetAspect(), 
 			cubemap->GetNear(), 
 			cubemap->GetFar()));
-	m_cubemapShader->SetCameraPosition(&glm::vec3(transport->GetPosition().x, transport->GetPosition().y, transport->GetPosition().z));
-	m_cubemapShader->SetAmbientIntensity(m_ambientIntensity);
-	//m_cubemapShader->SetMaterial(m_material);
-	m_cubemapShader->SetDirectionalLight(m_directionalLight);
-	m_cubemapShader->SetPointLights(&m_pointLights[0], m_pointLightsCount, 4, 0);
-	m_cubemapShader->SetSpotLights(&m_spotLights[0], m_spotLightsCount, 4 + m_pointLightsCount, m_pointLightsCount);
+	shader->SetCameraPosition(&glm::vec3(transport->GetPosition().x, transport->GetPosition().y, transport->GetPosition().z));
+	shader->SetAmbientIntensity(m_ambientIntensity);
+	shader->SetDirectionalLight(m_directionalLight);
+	shader->SetPointLights(&m_pointLights[0], m_pointLightsCount, 4, 0);
+	shader->SetSpotLights(&m_spotLights[0], m_spotLightsCount, 4 + m_pointLightsCount, m_pointLightsCount);
 
-	m_cubemapShader->SetTexutre(1);
+	shader->SetTexutre(1);
 
-	GLuint uniformModel = m_cubemapShader->GetModelLocation();
+	GLuint uniformModel = shader->GetModelLocation();
 
-	ShaderCompiler::ValidateProgram(m_cubemapShader->GetShaderID());
+	ShaderCompiler::ValidateProgram(shader->GetShaderID());
 	
 	// Render scene
-	RenderScene(RenderFilter::R_ALL, uniformModel, m_cubemapShader);
+	RenderScene(RenderFilter::R_ALL, uniformModel, shader);
 
 	// Re-bind framebuffer to the default one
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -404,7 +442,7 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Draw skybox
-	skybox->Draw(&Camera::GetInstance()->GetViewMatrix(), &Camera::GetInstance()->GetProjectionMatrix());
+	m_skybox->Draw(&Camera::GetInstance()->GetViewMatrix(), &Camera::GetInstance()->GetProjectionMatrix());
 
 	// Use the developed default shader
 	m_shader->UseShader();
@@ -414,7 +452,6 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	m_shader->SetViewMatrix(&Camera::GetInstance()->GetViewMatrix());
 	m_shader->SetCameraPosition(&Camera::GetInstance()->GetCameraPosition());
 	m_shader->SetAmbientIntensity(m_ambientIntensity);
-	//m_shader->SetMaterial(m_material);
 	m_shader->SetReflectionFactor(0.0f);
 	m_shader->SetRefractionFactor(0.0f);
 	m_shader->SetFresnelValues(0.0f, 0.0f, 0.0f);
@@ -432,8 +469,7 @@ void GLRenderer::RenderPass(RenderFilter filter)
 
 	textureUnit++;
 	size_t worldReflectionUnit = textureUnit;
-	refract->Read(GL_TEXTURE0 + textureUnit);
-	m_shader->SetWorldReflection(textureUnit);
+	m_shader->SetWorldReflection(worldReflectionUnit);
 
 	textureUnit++;
 	m_shader->SetPointLights(&m_pointLights[0], m_pointLightsCount, textureUnit, 0);
@@ -448,18 +484,7 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	// Render scene
 	RenderScene(filter, uniformModel, m_shader);
 
-	m_shader->SetReflectionFactor(1.0f);
-	m_shader->SetRefractionFactor(1.0f);
-	m_shader->SetFresnelValues(0.0f, 0.9f, 1.0f);
-	m_shader->SetIORValue(0.5f, 0.51f, 0.52f);
-	refractModel->Render(RenderFilter::R_ALL, uniformModel, m_shader);
-
-	reflect->Read(GL_TEXTURE0 + worldReflectionUnit);
-
-	m_shader->SetReflectionFactor(1.0f);
-	m_shader->SetRefractionFactor(1.0f);
-	m_shader->SetFresnelValues(1.0f, 0.0f, 0.0f);
-	reflectModel->Render(RenderFilter::R_ALL, uniformModel, m_shader);
+	m_cubemapRenderer->Render(m_shader, uniformModel, worldReflectionUnit);
 }
 
 void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter)
@@ -468,20 +493,7 @@ void GLRenderer::Render(GLWindow* glWindow, Transform* root, RenderFilter filter
 		// Only calculate dynamic shadow map if there are dynamic objects to display
 		DirectionalSMPass(RenderFilter::R_DYNAMIC);
 
-		if (Camera::GetInstance()->PointInsideViewFrustum(&(refractTransform->GetPosition()), 0.0872665f)) {
-			float distance = glm::distance(Camera::GetInstance()->GetCameraPosition(), refractTransform->GetPosition());
-			if (distance < 10.0f) {
-				refract->ReadyCubemap(distance);
-				CubeMapPass(refractTransform, refract);
-			}
-		}
-		if (Camera::GetInstance()->PointInsideViewFrustum(&(reflectTransform->GetPosition()), 0.0872665f)) {
-			float distance = glm::distance(Camera::GetInstance()->GetCameraPosition(), refractTransform->GetPosition());
-			if (distance < 10.0f) {
-				reflect->ReadyCubemap(distance);
-				CubeMapPass(reflectTransform, reflect);
-			}
-		}
+		m_cubemapRenderer->CubeMapPass(this);
 
 		glWindow->SetViewport();
 	}
@@ -502,8 +514,7 @@ void GLRenderer::BakeStage(GLWindow * glWindow)
 		OmnidirectionalSMPass(m_spotLights[i], RenderFilter::R_STATIC);
 	}
 
-	CubeMapPass(refractTransform, refract);
-	CubeMapPass(reflectTransform, reflect);
+	m_cubemapRenderer->CubeMapPass(this);
 
 	glWindow->SetViewport();
 }
@@ -513,7 +524,7 @@ GLRenderer::~GLRenderer()
 	delete m_shader;
 	delete m_omnidirectionalSMShader;
 	delete m_directionalSMShader;
-	delete m_cubemapShader;
+	delete m_cubemapRenderer;
 
 	delete m_directionalLight;
 
@@ -536,9 +547,4 @@ GLRenderer::~GLRenderer()
 			continue;
 		delete m_textures[i];
 	}
-
-	delete refract;
-	delete reflect;
-	delete refractModel;
-	delete reflectModel;
 }

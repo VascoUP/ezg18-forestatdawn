@@ -157,6 +157,8 @@ public:
 		Translates this object by a given displacement
 	*/
 	void Translate(glm::vec3 translate);
+
+	void TranslateLocal(glm::vec3 translate);
 	/*!
 		\n void Transform::Scale(glm::vec3 scale)
 		\param GLfloat scale Scale amount for each axis

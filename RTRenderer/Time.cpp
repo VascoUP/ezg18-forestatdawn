@@ -5,6 +5,11 @@ GLfloat Time::mTime = 0;
 int Time::mFPS = 0;
 int Time::mSecondsCounter = 0;
 
+void Time::Start()
+{
+	mTime = glfwGetTime();
+}
+
 GLfloat Time::GetDeltaTime() {
 	return mDTime;
 }

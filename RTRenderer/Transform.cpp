@@ -209,6 +209,12 @@ void Transform::Translate(glm::vec3 translate) {
 	_NotifyTransformation();
 }
 
+void Transform::TranslateLocal(glm::vec3 translate)
+{
+	this->m_position += translate;
+	_NotifyTransformation();
+}
+
 void Transform::Scale(GLfloat scale) {
 	this->m_scale *= scale;
 }

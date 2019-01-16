@@ -14,6 +14,7 @@ private:
 	static int mSecondsCounter;
 
 public:
+	static void Start();
 	static GLfloat GetDeltaTime();
 	static void Update();
 };

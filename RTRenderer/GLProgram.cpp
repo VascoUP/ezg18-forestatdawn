@@ -23,6 +23,8 @@ void GLCinematicProgram::Run()
 
 	mRenderer->BakeStage(mWindow);
 
+	Time::Start();
+
 	// Loop until window closed
 	while (!mWindow->GetShouldClose()) {
 		Time::Update();
@@ -66,6 +68,8 @@ void GLRoamProgram::Run()
 	mRoot->SetUp();
 
 	mRenderer->BakeStage(mWindow);
+
+	Time::Start();
 
 	// Loop until window closed
 	while (!mWindow->GetShouldClose()) {

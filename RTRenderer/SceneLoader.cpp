@@ -225,40 +225,92 @@ std::string SimulateJSONObject() {
 }
 
 void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow) {
-	Transform *blackhawkTransform = new Transform(root);
-	blackhawkTransform->SetStatic(false);
-	blackhawkTransform->Scale(0.5f);
-	blackhawkTransform->Translate(glm::vec3(-5.0f, 10.0f, 15.0f));
-	blackhawkTransform->Rotate(-1.57f, 0.0f, 0.0f);
-	meshRenderer->AddMeshRenderer(new GLObject(blackhawkTransform, 0));
-	blackhawkTransform->AddUpdatable(new ObjectController(blackhawkTransform, 7.0f, 1.0f));
+	// -- Helicopter --
+	Transform *transform = new Transform(root);
+	transform->SetStatic(false);
+	transform->Scale(0.5f);
+	transform->Translate(glm::vec3(0.0f, 10.0f, 0.0f));
+	transform->Rotate(-1.57f, 3.14f, 0.0f);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 0));
+	transform->AddUpdatable(new ObjectController(transform, 7.0f, 1.0f));
 
-	Transform *tree01Transform = new Transform(root);
-	tree01Transform->Translate(glm::vec3(10.0f, 0.0f, 0.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(tree01Transform, 1));
+	// -- Type 1 trees --
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(10.0f, 0.0f, 0.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
 
-	Transform *tree01Transform2 = new Transform(root);
-	tree01Transform2->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(tree01Transform2, 1));
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
 
-	Transform *tree02Transform = new Transform(root);
-	tree02Transform->Translate(glm::vec3(0.0f, 0.0f, 2.0f));
-	meshRenderer->AddMeshRenderer(new GLObject(tree02Transform, 2));
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(-1.0f, 0.0f, 5.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
 
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(2.0f, 0.0f, -3.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(2.0f, 0.0f, 10.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(5.0f, 0.0f, 5.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 1));
+
+	// -- Type 2 trees --
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(0.0f, 0.0f, 2.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(3.0f, 0.0f, -1.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(-5.0f, 0.0f, 1.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(2.0f, 0.0f, -5.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(3.0f, 0.0f, 8.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(7.0f, 0.0f, -2.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(8.0f, 0.0f, 2.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+
+	transform = new Transform(root);
+	transform->Translate(glm::vec3(6.0f, 0.0f, -5.0f));
+	meshRenderer->AddMeshRenderer(new GLObject(transform, 2));
+
+	// -- Terrain --
 	TerrainMesh* terrain = TerrainMesh::CreateInstance();
 	GLMeshRenderer* renderer = new GLMeshRenderer();
 	renderer->SetRenderable(terrain);
 	meshRenderer->AddObjectRenderer(renderer);
 
-	Transform* terrainTransform = new Transform(root);
-	meshRenderer->AddMeshRenderer(new GLObject(terrainTransform, terrain->GetIndex()));
+	transform = new Transform(root);
+	meshRenderer->AddMeshRenderer(new GLObject(transform, terrain->GetIndex()));
 
 	// Camera object is not static
-	Transform *object = new Transform(root);
-	object->SetStatic(false);
-	object->Translate(glm::vec3(0.0f, 5.0f, -5.0f));
-	object->AddUpdatable(Camera::CreateInstance(object, glWindow));
-	object->AddUpdatable(new CameraController(object, Camera::GetInstance(), 5.0f, 5.0f));
+	transform = new Transform(root);
+	transform->SetStatic(false);
+	transform->Translate(glm::vec3(0.0f, 5.0f, -5.0f));
+	transform->AddUpdatable(Camera::CreateInstance(transform, glWindow));
+	transform->AddUpdatable(new CameraController(transform, Camera::GetInstance(), 5.0f, 5.0f));
 }
 
 void SceneLoader::Load(const char* filename, GLRenderer * meshRenderer, Transform* rootObject, GLWindow* glWindow) {

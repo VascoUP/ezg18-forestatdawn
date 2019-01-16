@@ -43,7 +43,6 @@ void GLCinematicProgram::Run()
 
 	delete ErrorShader::GetInstance();
 	delete mRenderer;
-	delete mRoot;
 	delete mWindow;
 }
 

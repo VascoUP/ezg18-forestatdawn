@@ -65,6 +65,8 @@ public:
 	void Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr);
 };
 
+class GLRenderer;
+
 class GLCubeMapRenderer {
 private:
 	CubeMapRenderShader* m_cubemapShader;

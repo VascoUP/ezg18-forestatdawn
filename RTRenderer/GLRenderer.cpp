@@ -45,8 +45,7 @@ glm::mat4 GLObject::GetTransformMatrix() const
 
 GLObject::~GLObject()
 {
-	delete m_transform;
-	//delete m_material;
+	delete m_material;
 }
 
 

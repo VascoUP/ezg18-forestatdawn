@@ -146,12 +146,12 @@ GLRenderer::GLRenderer()
 	m_ambientIntensity = 0.1f;
 
 	std::vector<std::string> faces;
-	faces.push_back("Textures/Skybox/stormydays_rt.tga");
-	faces.push_back("Textures/Skybox/stormydays_lf.tga");
-	faces.push_back("Textures/Skybox/stormydays_up.tga");
-	faces.push_back("Textures/Skybox/stormydays_dn.tga");
-	faces.push_back("Textures/Skybox/stormydays_bk.tga");
-	faces.push_back("Textures/Skybox/stormydays_ft.tga");
+	faces.push_back("Textures/Skybox/miramar_rt.tga");
+	faces.push_back("Textures/Skybox/miramar_lf.tga");
+	faces.push_back("Textures/Skybox/miramar_up.tga");
+	faces.push_back("Textures/Skybox/miramar_dn.tga");
+	faces.push_back("Textures/Skybox/miramar_bk.tga");
+	faces.push_back("Textures/Skybox/miramar_ft.tga");
 	skybox = new SkyBox(&faces);
 }
 

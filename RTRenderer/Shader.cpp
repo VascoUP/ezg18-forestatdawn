@@ -117,7 +117,8 @@ DefaultShader::DefaultShader()
 	uniformDirectionalLight.uniformSpecularColor = 0;
 	uniformDirectionalLight.uniformSpecularFactor = 0;
 	uniformDirectionalLight.uniformDirection = 0;
-	uniformDirectionalStaticSM = 0;
+	uniformDirectionalSM.uniformStaticShadowMap = 0;
+	uniformDirectionalSM.uniformDynamicShadowMap = 0;
 	uniformMaterial.uniformSpecularIntensity = 0;
 	uniformMaterial.uniformShininess = 0;
 	uniformMaterial.uniformAlbedo = 0;
@@ -138,6 +139,7 @@ void DefaultShader::GetShaderUniforms()
 	uniformMaterial.uniformSpecularIntensity = GetUniformLocation("u_material.specularIntensity");
 	uniformMaterial.uniformShininess = GetUniformLocation("u_material.shininess");
 	uniformMaterial.uniformAlbedo = GetUniformLocation("u_material.albedo");
+	uniformTexture = GetUniformLocation("u_material.albedoTexture");
 
 	// -- Directional Light Uniforms --
 	uniformDirectionalLight.uniformDiffuseColor = GetUniformLocation("u_directionalLight.light.diffuseColor");
@@ -194,20 +196,20 @@ void DefaultShader::GetShaderUniforms()
 		uniformSpotLights[i].uniformEdge = GetUniformLocation(locBuff);
 	}
 
+	// -- Directional shadow map --
+	uniformDirectionalLightTransform = GetUniformLocation("u_directionalLightTransform");
+	uniformDirectionalSM.uniformStaticShadowMap = GetUniformLocation("u_directionalSM.static_shadowmap");
+	uniformDirectionalSM.uniformDynamicShadowMap = GetUniformLocation("u_directionalSM.dynamic_shadowmap");
+
 	// -- Omni shadow maps --
 	for (size_t i = 0; i < MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS; i++) {
 		char locBuff[100] = { "\0" };
-		snprintf(locBuff, sizeof(locBuff), "u_omniSM[%d].shadowMap", i);
-		uniformOmniSM[i].uniformShadowMap = GetUniformLocation(locBuff);
+		snprintf(locBuff, sizeof(locBuff), "u_omniSM[%d].static_shadowmap", i);
+		uniformOmniSM[i].uniformStaticShadowMap = GetUniformLocation(locBuff);
 		snprintf(locBuff, sizeof(locBuff), "u_omniSM[%d].farPlane", i);
 		uniformOmniSM[i].uniformFarPlane = GetUniformLocation(locBuff);
 	}
-
-	uniformTexture = GetUniformLocation("u_mainTexture");
-	uniformDirectionalLightTransform = GetUniformLocation("u_directionalLightTransform");
-	uniformDirectionalStaticSM = GetUniformLocation("u_directionalStaticSM");
-	uniformDirectionalDynamicSM = GetUniformLocation("u_directionalDynamicSM");
-
+	
 	// -- Reflections --
 	uniformWorldReflection = GetUniformLocation("u_worldReflection");
 	uniformReflectionFactor = GetUniformLocation("u_reflectionFactor");
@@ -255,7 +257,7 @@ void DefaultShader::SetPointLights(PointLight **pLight, unsigned int lightCount,
 			uniformPointLights[i].uniformLinear, uniformPointLights[i].uniformExponent, uniformPointLights[i].uniformDiffuseColor,
 			uniformPointLights[i].uniformDiffuseFactor, uniformPointLights[i].uniformSpecularColor, uniformPointLights[i].uniformSpecularFactor);
 		pLight[i]->GetStaticShadowMap()->Read(GL_TEXTURE0 + textureUnit + i);
-		glUniform1i(uniformOmniSM[i + offset].uniformShadowMap, textureUnit + i);
+		glUniform1i(uniformOmniSM[i + offset].uniformStaticShadowMap, textureUnit + i);
 		glUniform1f(uniformOmniSM[i + offset].uniformFarPlane, pLight[i]->GetFarPlane());
 	}
 }
@@ -271,7 +273,7 @@ void DefaultShader::SetSpotLights(SpotLight **sLight, unsigned int lightCount, u
 			uniformSpotLights[i].uniformDiffuseColor, uniformSpotLights[i].uniformDiffuseFactor,
 			uniformSpotLights[i].uniformSpecularColor, uniformSpotLights[i].uniformSpecularFactor);
 		sLight[i]->GetStaticShadowMap()->Read(GL_TEXTURE0 + textureUnit + i);
-		glUniform1i(uniformOmniSM[i + offset].uniformShadowMap, textureUnit + i);
+		glUniform1i(uniformOmniSM[i + offset].uniformStaticShadowMap, textureUnit + i);
 		glUniform1f(uniformOmniSM[i + offset].uniformFarPlane, sLight[i]->GetFarPlane());
 	}
 }
@@ -288,12 +290,12 @@ void DefaultShader::SetTexutre(GLuint textureUnit)
 
 void DefaultShader::SetDirectionalStaticSM(GLuint textureUnit)
 {
-	glUniform1i(uniformDirectionalStaticSM, textureUnit);
+	glUniform1i(uniformDirectionalSM.uniformStaticShadowMap, textureUnit);
 }
 
 void DefaultShader::SetDirectionalDynamicSM(GLuint textureUnit)
 {
-	glUniform1i(uniformDirectionalDynamicSM, textureUnit);
+	glUniform1i(uniformDirectionalSM.uniformDynamicShadowMap, textureUnit);
 }
 
 void DefaultShader::SetDirectionalLightTransform(glm::mat4 * lTransform)

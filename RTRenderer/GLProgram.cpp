@@ -1,7 +1,7 @@
 #include "GLProgram.h"
 
-#define SCREEN_WIDTH	1600
-#define SCREEN_HEIGHT	900
+#define SCREEN_WIDTH	1920
+#define SCREEN_HEIGHT	1080
 
 
 GLCinematicProgram::GLCinematicProgram()
@@ -105,7 +105,7 @@ GLProgram::GLProgram(RenderMode mode) :
 	mRenderMode(mode)
 {
 	mWindow = new GLWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
-	mWindow->Initialize();
+	mWindow->Initialize(false);
 
 	mRoot = new Transform();
 	mRenderer = new GLRenderer();

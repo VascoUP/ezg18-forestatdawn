@@ -5,6 +5,7 @@
 
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
+#include <GLFW\glfw3native.h>
 
 #include "Input.h"
 
@@ -20,7 +21,7 @@ private:
 public:
 	GLWindow(GLint windowWidth, GLint windowHeight);
 
-	int Initialize();
+	int Initialize(bool adaptScreen);
 	void SetViewport();
 
 	GLfloat GetBufferWidht();

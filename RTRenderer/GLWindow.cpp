@@ -8,13 +8,14 @@ GLWindow::GLWindow(GLint windowWidth, GLint windowHeight) {
 	height = windowHeight;
 }
 
-int GLWindow::Initialize() {
+int GLWindow::Initialize(bool fullscreen) {
 	// Initialize GLFW
 	if (!glfwInit()) {
 		printf("GLFW initialization failed.");
 		glfwTerminate();
 		return 1;
 	}
+
 
 	// Setup GLFW window properties
 	// OpenGL version
@@ -25,7 +26,7 @@ int GLWindow::Initialize() {
 	// Allow forward compatibility
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLU_TRUE);
 
-	mainWindow = glfwCreateWindow(width, height, "Test Window", NULL, NULL);
+	mainWindow = glfwCreateWindow(width, height, "Test Window", fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
 	if (!mainWindow) {
 		printf("GLFW window creation failed.");
 		glfwTerminate();

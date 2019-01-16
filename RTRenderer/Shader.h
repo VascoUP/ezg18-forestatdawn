@@ -87,9 +87,6 @@ private:
 		// Directional light direction
 		GLuint uniformDirection;
 	} uniformDirectionalLight;
-	GLuint uniformDirectionalLightTransform;
-	GLuint uniformDirectionalStaticSM;
-	GLuint uniformDirectionalDynamicSM;
 
 	// -- Point Lights --
 	int pointLightCount;
@@ -127,12 +124,12 @@ private:
 	struct {
 		GLuint uniformStaticShadowMap;
 		GLuint uniformDynamicShadowMap;
-	};
-	// Todo: ^ Use this ^
+	} uniformDirectionalSM;
+	GLuint uniformDirectionalLightTransform;
 
 	// -- Omnidirectional shadow maps --
 	struct {
-		GLuint uniformShadowMap;
+		GLuint uniformStaticShadowMap;
 		GLuint uniformFarPlane;
 	} uniformOmniSM[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
 

@@ -39,8 +39,6 @@ struct SpotLight
 	float edge;
 };
 
-
-// --New lighting model
 struct FragParams {
 	// Fragment position
 	vec3 frag_Position;
@@ -54,27 +52,34 @@ struct Material {
 	float specularIntensity;
 	float shininess;
 	vec3 albedo;
+	sampler2D albedoTexture;
+};
+
+struct ShadowMap {
+	sampler2D static_shadowmap;
+	sampler2D dynamic_shadowmap;
 };
 
 struct OmniShadowMap {
-	samplerCube shadowMap;
+	samplerCube static_shadowmap;
 	float farPlane;
 };
 
-uniform	Material u_material;
+
 uniform vec3 u_cameraPosition;
 
 uniform float u_ambientFactor;
+
 uniform DirectionalLight u_directionalLight;
+uniform ShadowMap u_directionalSM;
+
+uniform OmniShadowMap u_omniSM[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
 uniform PointLight u_pointLights[MAX_POINT_LIGHTS];
 uniform int u_pointLightsCount = 0;
 uniform SpotLight u_spotLights[MAX_SPOT_LIGHTS];
 uniform int u_spotLightsCount = 0;
 
-uniform sampler2D u_mainTexture;
-uniform sampler2D u_directionalStaticSM;
-uniform sampler2D u_directionalDynamicSM;
-uniform OmniShadowMap u_omniSM[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
+uniform	Material u_material;
 
 uniform samplerCube u_worldReflection;
 uniform float u_reflectionFactor;
@@ -82,13 +87,14 @@ uniform float u_refractionFactor;
 uniform vec3 u_IoRValues;
 uniform vec3 u_fresnelValues;
 
+
 float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex) {
 	vec3 fragToLight = vert_pos - light.position;
 	float currentDepth = length(fragToLight);
 	
 	float bias   = 0.15;
 
-	float closestDepth = texture(u_omniSM[shadowMapIndex].shadowMap, fragToLight).r;
+	float closestDepth = texture(u_omniSM[shadowMapIndex].static_shadowmap, fragToLight).r;
 	closestDepth *= u_omniSM[shadowMapIndex].farPlane; 
 	return float(currentDepth - bias > closestDepth);
 }
@@ -107,12 +113,12 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
 	float shadow = 0.0;
 
-	vec2 s_texelSize = 1.0 / textureSize(u_directionalStaticSM, 0);
-	vec2 d_texelSize = 1.0 / textureSize(u_directionalDynamicSM, 0);
+	vec2 s_texelSize = 1.0 / textureSize(u_directionalSM.static_shadowmap, 0);
+	vec2 d_texelSize = 1.0 / textureSize(u_directionalSM.dynamic_shadowmap, 0);
 	for(int x = -1; x < 1; x++) {
 		for(int y = -1; y < 1; y++) {
-			float s_pcfDepth = texture(u_directionalStaticSM, projCoords.xy + vec2(x, y) * s_texelSize).x;
-			float d_pcfDepth = texture(u_directionalDynamicSM, projCoords.xy + vec2(x, y) * d_texelSize).x;
+			float s_pcfDepth = texture(u_directionalSM.static_shadowmap, projCoords.xy + vec2(x, y) * s_texelSize).x;
+			float d_pcfDepth = texture(u_directionalSM.dynamic_shadowmap, projCoords.xy + vec2(x, y) * d_texelSize).x;
 			shadow += max(float(currentDepth - bias > s_pcfDepth), float(currentDepth - bias > d_pcfDepth));
 		}
 	}
@@ -215,26 +221,8 @@ float FresnelApproximation(float iDotN, vec3 fresnelValues)
 }
 
 vec4 CalculateReflection(FragParams frag) {
-    // -- Reflection color --
 	vec3 reflectVec = reflect(-frag.frag_nvToCam, frag.frag_Normal);
     return vec4(texture(u_worldReflection, reflectVec).rgb, 1.0);
-
-//	// -- Refraction color --
-//	vec3 refractVec = refract(-frag.frag_nvToCam, frag.frag_Normal, 1.5f);
-//	vec4 refractionColor = vec4(texture(u_worldReflection, refractVec).rgb, 1.0);
-//
-//	// -- Fresnel Refraction and Reflection -- 
-//	float fresnelTerm = FresnelApproximation(-frag.frag_nvToCam, frag.frag_Normal, u_fresnelValues);
-//
-//	return mix(reflectColor, refractionColor, fresnelTerm * u_refractionFactor);
-}
-
-vec3 Refract(vec3 i, vec3 n, float eta)
-{
-    float cosi = dot(-i, n);
-    float cost2 = 1.0 - eta * eta * (1.0 - cosi*cosi);
-    vec3 t = eta*i + ((eta*cosi - sqrt(abs(cost2))) * n);
-    return t * vec3(cost2 > 0.0);
 }
 
 vec4 CalculateRefraction(FragParams frag) {
@@ -249,8 +237,8 @@ vec4 CalculateRefraction(FragParams frag) {
 
 void main()
 {
-	vec4 tColor = texture(u_mainTexture, vert_mainTex);
-	if(tColor.a < 0.1)
+	vec4 tColor = texture(u_material.albedoTexture, vert_mainTex);
+	if(tColor.a < 0.5)
 		discard;
 
 	FragParams frag;
@@ -269,10 +257,8 @@ void main()
 		float fresnelTerm = FresnelApproximation(dot(frag.frag_nvToCam, frag.frag_Normal), u_fresnelValues);
 
 		// -- Result --
-		frag_color = mix(tColor, mix(rfrColor, rflColor, fresnelTerm), u_reflectionFactor);
+		frag_color = mix(tColor, mix(rfrColor, rflColor * lColor, fresnelTerm), u_reflectionFactor);
 	} else {
-		frag_color = tColor;
+		frag_color = tColor * lColor;
 	}
-
-	frag_color *= lColor;
 }

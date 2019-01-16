@@ -171,7 +171,7 @@ std::string SimulateJSONObject() {
 	simulateDLight["speccolor"]["green"] = 1.0f;
 	simulateDLight["speccolor"]["blue"] = 1.0f;
 	simulateDLight["rotation"]["x"] = -0.5f;
-	simulateDLight["rotation"]["y"] = 0.0f;
+	simulateDLight["rotation"]["y"] = -0.5f;
 	simulateDLight["rotation"]["z"] = 0.0f;
 	
 	nlohmann::json simulatePLight0;

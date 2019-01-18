@@ -150,7 +150,7 @@ vec4 CalculateSpotLights(FragParams frag, vec3 matColor, float matShininess, Spo
 void main()
 {
 	vec4 tColor = texture(u_material.albedoTexture, geo_texCoord);
-	if(tColor.a < 0.5)
+	if(tColor.a < 0.8)
 		discard;
 
 	FragParams frag;

@@ -81,22 +81,40 @@ uniform int u_spotLightsCount = 0;
 
 uniform	Material u_material;
 
+uniform samplerCube u_skybox;
 uniform samplerCube u_worldReflection;
 uniform float u_reflectionFactor;
 uniform float u_refractionFactor;
 uniform vec3 u_IoRValues;
 uniform vec3 u_fresnelValues;
 
-
 float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex) {
 	vec3 fragToLight = vert_pos - light.position;
 	float currentDepth = length(fragToLight);
 	
-	float bias   = 0.15;
+	float bias = currentDepth * 0.05;
+	float shadow = 0.0;
+	float samples = 3.0;
+	float offset = 0.1;
+	for(float x = -offset; x < offset; x += offset / (samples * 0.5))
+	{
+	    for(float y = -offset; y < offset; y += offset / (samples * 0.5))
+	    {
+			for(float z = -offset; z < offset; z += offset / (samples * 0.5))
+			{
+				float closestDepth = texture(u_omniSM[shadowMapIndex].static_shadowmap, fragToLight + vec3(x,y,z)).r;
+				closestDepth *= u_omniSM[shadowMapIndex].farPlane;
+				shadow += float(currentDepth - bias > closestDepth);				
+			}
+		}
+	}
 
-	float closestDepth = texture(u_omniSM[shadowMapIndex].static_shadowmap, fragToLight).r;
-	closestDepth *= u_omniSM[shadowMapIndex].farPlane; 
-	return float(currentDepth - bias > closestDepth);
+	shadow /= (samples * samples * samples);
+	return float(currentDepth - bias < u_omniSM[shadowMapIndex].farPlane) * shadow;
+	
+	//float closestDepth = texture(u_omniSM[shadowMapIndex].static_shadowmap, fragToLight).r;
+	//closestDepth *= u_omniSM[shadowMapIndex].farPlane; 
+	//return float(currentDepth - bias < u_omniSM[shadowMapIndex].farPlane && currentDepth - bias > closestDepth);
 }
 
 float CalculateDirectionalShadowFactor(DirectionalLight light) 
@@ -155,7 +173,7 @@ vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 
     //Sum up the specular light factoring
     outColor += intensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);
 
-    return (1.0 - shadowFactor) * clamp(outColor * vec4(matColor, 1.0), 0.0, 1.0);
+    return clamp(vec4((1.0 - shadowFactor) * outColor.rgb, 1.0) * vec4(matColor, 1.0), 0.0, 1.0);
 }
  
 vec4 CalculateDirectionalLight(FragParams frag, vec3 matColor, float matShininess, DirectionalLight light) {
@@ -222,15 +240,37 @@ float FresnelApproximation(float iDotN, vec3 fresnelValues)
 
 vec4 CalculateReflection(FragParams frag) {
 	vec3 reflectVec = reflect(-frag.frag_nvToCam, frag.frag_Normal);
-    return vec4(texture(u_worldReflection, reflectVec).rgb, 1.0);
+	vec3 refColor = texture(u_worldReflection, reflectVec).rgb;
+	if(equal(refColor, vec3(0.0, 0.0, 0.0)) == bvec3(1, 1, 1)) {
+		return vec4(texture(u_skybox, frag.frag_Normal).rgb, 1.0);
+	}
+	return vec4(refColor, 1.0);
 }
 
 vec4 CalculateRefraction(FragParams frag) {
 	// -- Refraction color --
 	vec3 refractColor;
-	refractColor.x = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.x)).x;
-	refractColor.y = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.y)).y;
-	refractColor.z = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.z)).z;
+	// Red
+	vec3 refractTex = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.x)).rgb;
+	if(equal(refractTex, vec3(0.0, 0.0, 0.0)) == bvec3(1, 1, 1)) {
+		refractColor.r = texture(u_skybox, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.x)).r;
+	} else {
+		refractColor.r = refractTex.r;
+	}
+	// Green
+	refractTex = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.y)).rgb;
+	if(equal(refractTex, vec3(0.0, 0.0, 0.0)) == bvec3(1, 1, 1)) {
+		refractColor.g = texture(u_skybox, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.y)).g;
+	} else {
+		refractColor.g = refractTex.g;
+	}
+	// Blue
+	refractTex = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.z)).rgb;
+	if(equal(refractTex, vec3(0.0, 0.0, 0.0)) == bvec3(1, 1, 1)) {
+		refractColor.b = texture(u_skybox, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.z)).b;
+	} else {
+		refractColor.b = refractTex.b;
+	}
 	return vec4(refractColor, 1.0);
 }
 
@@ -238,7 +278,7 @@ vec4 CalculateRefraction(FragParams frag) {
 void main()
 {
 	vec4 tColor = texture(u_material.albedoTexture, vert_mainTex);
-	if(tColor.a < 0.5)
+	if(tColor.a < 0.8)
 		discard;
 
 	FragParams frag;

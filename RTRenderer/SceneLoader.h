@@ -15,6 +15,6 @@
 class SceneLoader
 {
 public:
-	static void Load(const char* filename, GLRenderer* meshRenderer, Transform* transform, GLWindow* glWindow);
+	static void Load(const char* filename, GLRenderer* meshRenderer, Transform* transform, GLWindow* glWindow, bool isCinematic);
 	static void Store(const char* filename, GLRenderer* meshRenderer, Transform* transform);
 };

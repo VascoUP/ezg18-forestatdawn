@@ -82,8 +82,15 @@ public:
 
 	void Initialize(Transform* transform);
 
+	Transform* GetRefractTransform() {
+		return m_refractTransform;
+	};
+	Transform* GetReflectTransform() {
+		return m_reflectTransform;
+	};
+
 	void CubeMapPass(GLRenderer* glRenderer);
-	void RenderModels(GLuint uniformModel, LightedShader* shader = nullptr);
+	void RenderModels(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr);
 	void Render(DefaultShader* shader, GLuint uniformModel, GLuint textureUnit);
 	
 	~GLCubeMapRenderer();
@@ -95,7 +102,6 @@ private:
 	friend class GLCubeMapRenderer;
 
 	std::vector<GLObjectRenderer*> m_renderables;
-	std::vector<Texture*> m_textures;
 
 	DefaultShader* m_shader;
 	DirectionalShadowMapShader* m_directionalSMShader;
@@ -115,20 +121,19 @@ private:
 	size_t m_spotLightsCount = 0;
 	SpotLight* m_spotLights[MAX_SPOT_LIGHTS];
 public:
-	GLRenderer();
+	GLRenderer(Transform* transform);
 
-	void Initialize(Transform* transform);
-
-	std::vector<Texture*> GetTextures();
+	GLCubeMapRenderer* GetCubemapRenderer();
 	GLfloat GetAmbient();
 	void SetAmbient(GLfloat intensity);
 	DirectionalLight* GetDirectionalLight();
+	Light* GetPointLightAt(size_t index);
+	Light* GetSpotLightAt(size_t index);
 	void SetDirectionalLight(DirectionalLight* light);
 	void AddPointLight(PointLight* light);
 	void AddSpotLight(SpotLight* light);
 	void AddObjectRenderer(GLObjectRenderer* renderer);
 	void AddMeshRenderer(GLObject * meshRenderer);
-	void AddTexture(const char* texLocation);
 	void AddShader(DefaultShader* shader);
 	void Render(GLWindow* glWindow, Transform* root, RenderFilter filter);
 	void BakeStage(GLWindow* glWindow);

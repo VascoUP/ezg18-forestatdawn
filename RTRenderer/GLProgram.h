@@ -9,7 +9,10 @@
 class GLProgram
 {
 protected:
+	static GLProgram* mInstance;
+	
 	const RenderMode mRenderMode;
+	
 	GLWindow* mWindow;
 	Transform* mRoot;
 	GLRenderer* mRenderer;
@@ -19,6 +22,9 @@ protected:
 	GLProgram(RenderMode mode);
 public:
 	static GLProgram* CreateGLProgramInstance(RenderMode mode);
+
+	static GLProgram* GetInstance();
+	static GLRenderer* GetGLRenderer();
 
 	virtual void Run() = 0;
 

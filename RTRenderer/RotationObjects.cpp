@@ -12,7 +12,7 @@ RotatingObject::RotatingObject(Transform* container, float velX, float velY, flo
 void RotatingObject::SetUp() {}
 
 void RotatingObject::Update() {
-	transform->Rotate(rotationVelocityX * Time::GetDeltaTime(), rotationVelocityY * Time::GetDeltaTime(), rotationVelocityZ * Time::GetDeltaTime());
+	transform->Rotate(rotationVelocityX * (GLfloat)Time::GetDeltaTime(), rotationVelocityY * (GLfloat)Time::GetDeltaTime(), rotationVelocityZ * (GLfloat)Time::GetDeltaTime());
 }
 
 RotatingObject::~RotatingObject()

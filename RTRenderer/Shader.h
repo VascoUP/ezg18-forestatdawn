@@ -21,6 +21,8 @@ protected:
 	// ID of the shader
 	GLuint shaderID;
 public:
+	Shader();
+
 	GLuint GetShaderID() const { return shaderID; }
 	// Activates this shader whenever it's called
 	void UseShader();
@@ -43,6 +45,8 @@ class StandardShader :
 	public Shader
 {
 public:
+	StandardShader();
+
 	// Given the vertex and fragment shader code it creates a shader program
 	bool CreateFromString(const char* vertexCode, const char* fragmentCode, const char* geometryCode = nullptr);
 	// Given the vertex and fragment shader files it creates a shader program
@@ -162,6 +166,7 @@ private:
 	} uniformOmniSM[MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS];
 
 	// -- Reflection --
+	GLuint uniformSkybox;
 	GLuint uniformWorldReflection;
 	GLuint uniformReflectionFactor;
 	GLuint uniformRefractionFactor;
@@ -178,6 +183,7 @@ public:
 	void SetDirectionalStaticSM(GLuint textureUnit);
 	void SetDirectionalDynamicSM(GLuint textureUnit);
 	void SetDirectionalLightTransform(glm::mat4 * lTransform);
+	void SetSkybox(GLuint textureUnit);
 	void SetWorldReflection(GLuint textureUnit);
 	void SetReflectionFactor(GLfloat factor);
 	void SetRefractionFactor(GLfloat factor);
@@ -275,24 +281,7 @@ protected:
 class ComputeShader :
 	public Shader {
 public:
+	ComputeShader();
+
 	bool CreateFromString(const char* computeCode);
-};
-
-class JoinDepthBuffersShader 
-	: public ComputeShader
-{
-	/*
-	#version 430
-
-	uniform vec4 texIncrement;
-	uniform image2D stcTex;
-	uniform image2D dnmTex;
-	uniform image2D dstTex;
-
-	void main() {
-		ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
-		data = ?
-		imageStore(dstTex, storePos, data);\
-	}
-	*/
 };

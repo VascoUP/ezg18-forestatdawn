@@ -24,6 +24,11 @@ std::string Shader::ReadFile(const char* file) {
 	return code;
 }
 
+Shader::Shader()
+{
+	shaderID = 0;
+}
+
 void Shader::UseShader() {
 	if (!shaderID) {
 		printf("No initialized shader has been found");
@@ -41,6 +46,10 @@ Shader::~Shader()
 	ClearShader();
 }
 
+
+StandardShader::StandardShader() :
+	Shader()
+{}
 
 bool StandardShader::CreateFromString(const char* vertexCode, const char* fragmentCode, const char* geometryCode) {
 	bool success = true;
@@ -85,24 +94,9 @@ bool StandardShader::CreateFromFiles(const char* vertexFile, const char* fragmen
 	return CreateFromString(vertexCode, fragmentCode, geometryCode);
 }
 
-
-bool ComputeShader::CreateFromString(const char * computeCode)
-{
-	shaderID = ShaderCompiler::CreateSingleShader(computeCode, GL_COMPUTE_SHADER);
-	// Fall back on the Error Shader if a problem has happened
-	if (!shaderID)
-		return false;
-	
-	//GetShaderUniforms();
-
-	return true;
-}
-
-
 LightedShader::LightedShader()
+	: StandardShader()
 {
-	shaderID = 0;
-
 	pointLightCount = 0;
 	spotLightCount = 0;
 
@@ -249,30 +243,23 @@ void LightedShader::SetTexutre(GLuint textureUnit)
 
 
 DefaultShader::DefaultShader()
+	: LightedShader()
 {
-	shaderID = 0;
-
 	pointLightCount = 0;
 	spotLightCount = 0;
 
-	uniformModel = 0;
 	uniformView = 0;
 	uniformProjection = 0;
-	uniformCameraPosition = 0;
-	uniformTexture = 0;
-	uniformAmbientIntensity = 0;
-	uniformDirectionalLight.uniformDiffuseColor = 0;
-	uniformDirectionalLight.uniformDiffuseFactor = 0;
-	uniformDirectionalLight.uniformSpecularColor = 0;
-	uniformDirectionalLight.uniformSpecularFactor = 0;
-	uniformDirectionalLight.uniformDirection = 0;
+
 	uniformDirectionalSM.uniformStaticShadowMap = 0;
 	uniformDirectionalSM.uniformDynamicShadowMap = 0;
-	uniformMaterial.uniformSpecularIntensity = 0;
-	uniformMaterial.uniformShininess = 0;
-	uniformMaterial.uniformAlbedo = 0;
-	uniformPointLightCount = 0;
-	uniformSpotLightCount = 0;
+
+	uniformSkybox = 0;
+	uniformWorldReflection = 0;
+	uniformReflectionFactor = 0;
+	uniformRefractionFactor = 0;
+	uniformIORValues = 0;
+	uniformFresnelValues = 0;
 }
 
 void DefaultShader::GetShaderUniforms()
@@ -281,6 +268,11 @@ void DefaultShader::GetShaderUniforms()
 
 	uniformView = GetUniformLocation("u_viewMatrix");
 	uniformProjection = GetUniformLocation("u_projectionMatrix");
+
+	// -- Directional shadow maps --
+	uniformDirectionalLightTransform = GetUniformLocation("u_directionalLightTransform");
+	uniformDirectionalSM.uniformStaticShadowMap = GetUniformLocation("u_directionalSM.static_shadowmap");
+	uniformDirectionalSM.uniformDynamicShadowMap = GetUniformLocation("u_directionalSM.dynamic_shadowmap");
 
 	// -- Omni shadow maps --
 	for (size_t i = 0; i < MAX_POINT_LIGHTS + MAX_SPOT_LIGHTS; i++) {
@@ -292,6 +284,7 @@ void DefaultShader::GetShaderUniforms()
 	}
 	
 	// -- Reflections --
+	uniformSkybox = GetUniformLocation("u_skybox");
 	uniformWorldReflection = GetUniformLocation("u_worldReflection");
 	uniformReflectionFactor = GetUniformLocation("u_reflectionFactor");
 	uniformRefractionFactor = GetUniformLocation("u_refractionFactor");
@@ -355,6 +348,11 @@ void DefaultShader::SetDirectionalLightTransform(glm::mat4 * lTransform)
 	glUniformMatrix4fv(uniformDirectionalLightTransform, 1, GL_FALSE, glm::value_ptr(*lTransform));
 }
 
+void DefaultShader::SetSkybox(GLuint textureUnit)
+{
+	glUniform1i(uniformSkybox, textureUnit);
+}
+
 void DefaultShader::SetWorldReflection(GLuint textureUnit) {
 	glUniform1i(uniformWorldReflection, textureUnit);
 }
@@ -376,10 +374,9 @@ void DefaultShader::SetIORValue(GLfloat x, GLfloat y, GLfloat z) {
 }
 
 
-CubeMapRenderShader::CubeMapRenderShader()
-{
-	shaderID = 0;
-}
+CubeMapRenderShader::CubeMapRenderShader() :
+	LightedShader()
+{}
 
 void CubeMapRenderShader::GetShaderUniforms()
 {
@@ -400,10 +397,9 @@ void CubeMapRenderShader::SetViewProjectMatrices(std::vector<glm::mat4> viewProj
 }
 
 
-DirectionalShadowMapShader::DirectionalShadowMapShader()
+DirectionalShadowMapShader::DirectionalShadowMapShader() :
+	StandardShader()
 {
-	shaderID = 0;
-
 	uniformModel = 0;
 	uniformDirectionalLightTransform = 0;
 }
@@ -430,9 +426,9 @@ void DirectionalShadowMapShader::SetDirectionalLightTransform(glm::mat4 * lTrans
 }
 
 
-OmnidirectionalShadowMapShader::OmnidirectionalShadowMapShader() {
-	shaderID = 0;
-
+OmnidirectionalShadowMapShader::OmnidirectionalShadowMapShader() :
+	StandardShader() 
+{
 	uniformModel = 0;
 	uniformLightPos = 0;
 	uniformFarPlane = 0;
@@ -476,7 +472,8 @@ void OmnidirectionalShadowMapShader::SetLightMatrices(std::vector<glm::mat4> lig
 }
 
 
-SkyBoxShader::SkyBoxShader()
+SkyBoxShader::SkyBoxShader() :
+	StandardShader()
 {
 	uniformSkyBox = 0;
 	uniformViewProjectionMatrix = 0;
@@ -499,10 +496,9 @@ void SkyBoxShader::SetViewProjectionMatrix(glm::mat4* viewProjectionMatrix)
 }
 
 
-CustomShader::CustomShader()
-{
-	shaderID = 0;
-}
+CustomShader::CustomShader() :
+	StandardShader()
+{}
 
 GLuint CustomShader::GetShaderID()
 {
@@ -511,3 +507,19 @@ GLuint CustomShader::GetShaderID()
 
 void CustomShader::GetShaderUniforms()
 {}
+
+
+ComputeShader::ComputeShader() :
+	Shader() {}
+
+bool ComputeShader::CreateFromString(const char * computeCode)
+{
+	shaderID = ShaderCompiler::CreateSingleShader(computeCode, GL_COMPUTE_SHADER);
+	// Fall back on the Error Shader if a problem has happened
+	if (!shaderID)
+		return false;
+
+	//GetShaderUniforms();
+
+	return true;
+}

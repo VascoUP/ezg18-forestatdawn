@@ -10,6 +10,8 @@ class Light {
 protected:
 	Transform* transform;
 
+	bool isActive = true;
+
 	GLfloat diffuseIntensity;
 	glm::vec3 diffuseColor;
 	GLfloat specularIntensity;
@@ -18,9 +20,7 @@ protected:
 	glm::mat4 lightProj;
 
 	ShadowMap* m_staticSM;
-	ShadowMap* m_dynamicSM;
 public:
-	Light(Transform* transform);
 	Light(Transform* transform,
 		GLuint staticShadowWidth, GLuint staticShadowHeight,
 		GLuint dynamicShadowWidth, GLuint dynamicShadowHeight,
@@ -33,20 +33,25 @@ public:
 	GLfloat GetSpecularIntensity() const;
 	glm::vec3 GetSpecularColor() const;
 	ShadowMap* GetStaticShadowMap();
-	ShadowMap* GetDynamicShadowMap();
+
+	bool IsActive() const;
+	void SetActive(bool active);
 
 	void UseLight(GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation);
 };
 
 class DirectionalLight : public Light
 {
+private:
+	ShadowMap* m_dynamicSM;
 public:
-	DirectionalLight(Transform* transform);
 	DirectionalLight(Transform* transform,
 		GLuint staticShadowWidth, GLuint staticShadowHeight,
 		GLuint dynamicShadowWidth, GLuint dynamicShadowHeight,
 		GLfloat diffIntensity, GLfloat diffRed, GLfloat diffGreen, GLfloat diffBlue,
 		GLfloat specIntensity, GLfloat specRed, GLfloat specGreen, GLfloat specBlue);
+
+	ShadowMap* GetDynamicShadowMap();
 
 	void UseLight(GLuint directionLocation, GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation);
 
@@ -62,7 +67,6 @@ protected:
 
 	GLfloat farPlane;
 public:
-	PointLight(Transform* transform);
 	PointLight(Transform* transform,
 		GLfloat near, GLfloat far,
 		GLuint staticShadowWidth, GLuint staticShadowHeight,
@@ -88,7 +92,6 @@ private:
 	GLfloat	procEdge;
 
 public:
-	SpotLight(Transform* transform);
 	SpotLight(Transform* transform,
 		GLfloat near, GLfloat far,
 		GLuint staticShadowWidth, GLuint staticShadowHeight,

@@ -20,6 +20,7 @@ public:
 	SkyBox();
 	SkyBox(std::vector<std::string>* p_faceLocation);
 
+	void BindSkybox(GLuint textureUnit);
 	void Draw(glm::mat4* viewMatrix, glm::mat4* projectionMatrix);
 
 	~SkyBox();

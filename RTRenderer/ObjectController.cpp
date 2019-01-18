@@ -17,7 +17,7 @@ void CameraController::SetUp() {
 }
 
 void CameraController::KeyControl() {
-	GLfloat velocity = moveSpeed * Time::GetDeltaTime();
+	GLfloat velocity = moveSpeed * (GLfloat)Time::GetDeltaTime();
 	if (Input::IsKeyPress(GLFW_KEY_W)) {
 		this->transform->Translate(glm::vec3(0.0f, 0.0f, velocity));
 	}
@@ -36,8 +36,8 @@ void CameraController::MouseControl() {
 	GLfloat xDelta, yDelta;
 	Input::GetMouseDelta(&xDelta, &yDelta);
 
-	xDelta *= turnSpeed * Time::GetDeltaTime();
-	yDelta *= turnSpeed * Time::GetDeltaTime();
+	xDelta *= turnSpeed * (GLfloat)Time::GetDeltaTime();
+	yDelta *= turnSpeed * (GLfloat)Time::GetDeltaTime();
 
 	this->transform->Rotate(-yDelta, -xDelta, 0.0f);
 }
@@ -47,13 +47,13 @@ void CameraController::Update() {
 	MouseControl();
 }
 
-CinematicCameraController::CinematicCameraController(Transform * container, std::vector<KeyFrame>* keyFrames)
+AnimateKeyFrame::AnimateKeyFrame(Transform * container, std::vector<KeyFrame>* keyFrames)
 	: AObjectBehavior(container)
 {
 	m_keyframes = *keyFrames;
 }
 
-void CinematicCameraController::SetUp()
+void AnimateKeyFrame::SetUp()
 {
 	m_index = 0;
 	m_deltaTime = 0;
@@ -71,13 +71,13 @@ void CinematicCameraController::SetUp()
 	}
 }
 
-void CinematicCameraController::Update()
+void AnimateKeyFrame::Update()
 {
 	// End of behavior
 	if (m_index + 1 >= m_keyframes.size())
 		return;
 
-	m_deltaTime += Time::GetDeltaTime();
+	m_deltaTime += (GLfloat)Time::GetDeltaTime();
 
 	float residue;
 	do {
@@ -110,16 +110,16 @@ void CinematicCameraController::Update()
 
 }
 
-PrintKeyFram::PrintKeyFram(Transform * container) :
+PrintKeyFrame::PrintKeyFrame(Transform * container) :
 	AObjectBehavior(container)
 {}
 
-void PrintKeyFram::SetUp()
+void PrintKeyFrame::SetUp()
 {
 	m_wasPressed = false;
 }
 
-void PrintKeyFram::Update()
+void PrintKeyFrame::Update()
 {
 	if (!m_wasPressed && Input::IsKeyPress(GLFW_KEY_SPACE)) {
 		m_wasPressed = true;
@@ -129,6 +129,30 @@ void PrintKeyFram::Update()
 	}
 	else if (m_wasPressed && !Input::IsKeyPress(GLFW_KEY_SPACE)) {
 		m_wasPressed = false;
+	}
+}
+
+ActivateLights::ActivateLights(Transform* transform) :
+	AObjectBehavior(transform)
+{}
+
+void ActivateLights::SetUp() {
+	for (size_t i = 0; i < 9; i++) {
+		m_wasPressed[i] = false;
+	}
+}
+
+void ActivateLights::Update() {
+	for (size_t i = 0; i < 9; i++) {
+		if (!m_wasPressed[i] && Input::IsKeyPress(GLFW_KEY_1 + i)) {
+			m_wasPressed[i] = true;
+			Light* light = GLProgram::GetGLRenderer()->GetPointLightAt(i);
+			if(light != nullptr)
+				light->SetActive(!light->IsActive());
+		} 
+		else if (m_wasPressed && !Input::IsKeyPress(GLFW_KEY_1 + i)) {
+			m_wasPressed[i] = false;
+		}
 	}
 }
 
@@ -145,11 +169,11 @@ void HelicopterController::SetUp() {
 
 void HelicopterController::Update() {
 	{
-		GLfloat velocity = moveSpeed * Time::GetDeltaTime();
+		GLfloat velocity = moveSpeed * (GLfloat)Time::GetDeltaTime();
 		this->transform->Translate(glm::vec3(0.0f, velocity, 0.0f));
 	}
 	{
-		GLfloat angularVelocity = rotSpeed * Time::GetDeltaTime();
+		GLfloat angularVelocity = rotSpeed * (GLfloat)Time::GetDeltaTime();
 		this->transform->Rotate(0.0f, angularVelocity, 0.0f);
 	}
 }

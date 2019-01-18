@@ -10,7 +10,7 @@ Material::Material()
 	albedoAlpha = 1.0f;
 }
 
-Material::Material(GLfloat specularIntensity, GLfloat shininess, GLfloat red, GLfloat green, GLfloat blue)
+Material::Material(GLfloat specularIntensity, GLfloat shininess, GLfloat red, GLfloat green, GLfloat blue, Texture* albedo)
 {
 	this->specularIntensity = specularIntensity;
 	this->shininess = shininess;
@@ -18,16 +18,11 @@ Material::Material(GLfloat specularIntensity, GLfloat shininess, GLfloat red, GL
 	albedoGreen = green;
 	albedoBlue = blue;
 	albedoAlpha = 1.0f;
-	this->albedo = nullptr;
-	this->normalMap = nullptr;
+	this->albedo = albedo;
 }
 
 void Material::SetAlbedo(Texture* albedo) {
 	this->albedo = albedo;
-}
-
-void Material::SetNormalMap(Texture* normalMap) {
-	this->normalMap = normalMap;
 }
 
 void Material::UseMaterial(unsigned int specularIntensityLocation, unsigned int shininessLocation, unsigned int albedoLocation)
@@ -35,6 +30,9 @@ void Material::UseMaterial(unsigned int specularIntensityLocation, unsigned int 
 	glUniform1f(specularIntensityLocation, specularIntensity);
 	glUniform1f(shininessLocation, shininess);
 	glUniform3f(albedoLocation, albedoRed, albedoGreen, albedoBlue);
+
+	if(this->albedo != nullptr)
+		this->albedo->UseTexture();
 }
 
 

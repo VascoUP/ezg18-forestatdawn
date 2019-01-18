@@ -76,14 +76,19 @@ SkyBox::SkyBox(std::vector<std::string>* p_faceLocation)
 	mMesh->Load();
 }
 
+void SkyBox::BindSkybox(GLuint textureUnit)
+{
+	glActiveTexture(GL_TEXTURE0 + textureUnit);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureID);
+}
+
 void SkyBox::Draw(glm::mat4 * viewMatrix, glm::mat4 * projectionMatrix)
 {
 	glDepthMask(GL_FALSE);
 
 	mShader->UseShader();
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureID);
+	BindSkybox(1);
 	mShader->SetSkyBox(1);
 
 	// Ensure that there are no translation on the camera

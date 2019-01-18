@@ -14,14 +14,12 @@ private:
 	GLfloat albedoBlue;
 	GLfloat albedoAlpha;
 	Texture* albedo;
-	Texture* normalMap;
 
 public:
 	Material();
-	Material(GLfloat specularIntensity, GLfloat shininess, GLfloat red, GLfloat green, GLfloat blue);
+	Material(GLfloat specularIntensity, GLfloat shininess, GLfloat red, GLfloat green, GLfloat blue, Texture* albedo = nullptr);
 
 	void SetAlbedo(Texture* albedo);
-	void SetNormalMap(Texture* normalMap);
 	void UseMaterial(unsigned int specularIntensityLocation, unsigned int shininessLocation, unsigned int albedoLocation);
 
 	~Material();

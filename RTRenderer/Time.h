@@ -7,14 +7,14 @@
 
 class Time {
 private:
-	static GLfloat mDTime;
-	static GLfloat mTime;
+	static double mDTime;
+	static double mTime;
 
 	static int mFPS;
 	static int mSecondsCounter;
 
 public:
 	static void Start();
-	static GLfloat GetDeltaTime();
+	static double GetDeltaTime();
 	static void Update();
 };

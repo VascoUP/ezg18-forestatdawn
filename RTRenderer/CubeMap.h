@@ -9,6 +9,7 @@ class CubeMap
 private:
 	GLuint mFBO;
 	GLuint mCubeMap;
+	GLuint mDepthMap;
 	GLuint mSWidth;
 	GLuint mSHeight;
 

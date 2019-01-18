@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AObjectBehavior.h"
+#include "GLProgram.h"
 #include "Transform.h"
 #include "Time.h"
 #include "Input.h"
@@ -31,24 +32,34 @@ public:
 	void Update();
 };
 
-class CinematicCameraController : public AObjectBehavior {
+class AnimateKeyFrame : public AObjectBehavior {
 private:
-	int m_index;
+	size_t m_index;
 	float m_deltaTime;
 	std::vector<KeyFrame> m_keyframes;
 
 public:
-	CinematicCameraController(Transform* contanier, std::vector<KeyFrame>* keyFrames);
+	AnimateKeyFrame(Transform* contanier, std::vector<KeyFrame>* keyFrames);
 
 	void SetUp();
 	void Update();
 };
 
-class PrintKeyFram : public AObjectBehavior {
+class PrintKeyFrame : public AObjectBehavior {
 private:
 	bool m_wasPressed;
 public:
-	PrintKeyFram(Transform* container);
+	PrintKeyFrame(Transform* container);
+
+	void SetUp();
+	void Update();
+};
+
+class ActivateLights : public AObjectBehavior {
+private:
+	bool m_wasPressed[9];
+public:
+	ActivateLights(Transform* container);
 
 	void SetUp();
 	void Update();

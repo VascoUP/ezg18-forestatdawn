@@ -3,10 +3,13 @@
 #define SCREEN_WIDTH	1920
 #define SCREEN_HEIGHT	1080
 
+GLProgram* GLProgram::mInstance = nullptr;
 
 GLCinematicProgram::GLCinematicProgram()
 	: GLProgram(RenderMode::CINEMATIC) 
 {
+	SceneLoader::Load("", mRenderer, mRoot, mWindow, true);
+
 	if (Camera::GetInstance() == NULL) {
 		printf("Camera has not been setup");
 		mError = true;
@@ -50,6 +53,8 @@ void GLCinematicProgram::Run()
 GLRoamProgram::GLRoamProgram()
 	: GLProgram(RenderMode::ROAM) 
 {
+	SceneLoader::Load("", mRenderer, mRoot, mWindow, false);
+
 	if (Camera::GetInstance() == NULL) {
 		printf("Camera has not been setup");
 		mError = true;
@@ -107,17 +112,29 @@ void GLRoamProgram::Run()
 GLProgram::GLProgram(RenderMode mode) :
 	mRenderMode(mode)
 {
+	if (mInstance != nullptr) {
+		printf("Illegal operation");
+		return;
+	}
+
+	mInstance = this;
+
 	mWindow = new GLWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
 	mWindow->Initialize(false);
 
 	mRoot = new Transform();
-	mRenderer = new GLRenderer();
-	SceneLoader::Load("", mRenderer, mRoot, mWindow);
-
-	mRenderer->Initialize(mRoot);
+	mRenderer = new GLRenderer(mRoot);
 }
 
 GLProgram::~GLProgram() {}
+
+GLProgram* GLProgram::GetInstance() {
+	return mInstance;
+}
+ 
+GLRenderer* GLProgram::GetGLRenderer() {
+	return mInstance->mRenderer;
+}
 
 GLProgram* GLProgram::CreateGLProgramInstance(RenderMode mode)
 {

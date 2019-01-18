@@ -1,8 +1,8 @@
 #include "CubeMap.h"
 
-constexpr unsigned int SIZE1 = 512;
-constexpr unsigned int SIZE2 = 256;
-constexpr unsigned int SIZE3 = 128;
+constexpr unsigned int SIZE1 = 1024;
+constexpr unsigned int SIZE2 = 512;
+constexpr unsigned int SIZE3 = 256;
 constexpr float DISTANCE1 = 2.0f;
 constexpr float DISTANCE2 = 4.0f;
 
@@ -33,9 +33,24 @@ bool CubeMap::Init(GLuint width, GLuint height, GLfloat near, GLfloat far)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
+	glGenTextures(1, &mDepthMap);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthMap);
+
+	for (size_t i = 0; i < 6; ++i)
+	{
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, mSWidth, mSHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, mFBO);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mCubeMap, 0);
-	
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, mDepthMap, 0);
+
 	GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
 	if (Status != GL_FRAMEBUFFER_COMPLETE)

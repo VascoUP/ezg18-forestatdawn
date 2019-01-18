@@ -8,12 +8,12 @@ GLWindow::GLWindow(GLint windowWidth, GLint windowHeight) {
 	height = windowHeight;
 }
 
-int GLWindow::Initialize(bool fullscreen) {
+bool GLWindow::Initialize(bool fullscreen) {
 	// Initialize GLFW
 	if (!glfwInit()) {
 		printf("GLFW initialization failed.");
 		glfwTerminate();
-		return 1;
+		return false;
 	}
 
 
@@ -30,7 +30,7 @@ int GLWindow::Initialize(bool fullscreen) {
 	if (!mainWindow) {
 		printf("GLFW window creation failed.");
 		glfwTerminate();
-		return 1;
+		return false;
 	}
 
 	// Get Buffer size information
@@ -50,7 +50,7 @@ int GLWindow::Initialize(bool fullscreen) {
 		printf("GLEW initialization failed");
 		glfwDestroyWindow(mainWindow);
 		glfwTerminate();
-		return 1;
+		return false;
 	}
 
 	glCullFace(GL_FRONT);
@@ -64,6 +64,8 @@ int GLWindow::Initialize(bool fullscreen) {
 
 	// Define the user of main window
 	glfwSetWindowUserPointer(mainWindow, this);
+
+	return true;
 }
 
 void GLWindow::SetViewport()
@@ -71,11 +73,11 @@ void GLWindow::SetViewport()
 	glViewport(0, 0, bufferWidth, bufferHeight);
 }
 
-GLfloat GLWindow::GetBufferWidht() {
+GLuint GLWindow::GetBufferWidht() {
 	return bufferWidth;
 }
 
-GLfloat GLWindow::GetBufferHeight() {
+GLuint GLWindow::GetBufferHeight() {
 	return bufferHeight;
 }
 

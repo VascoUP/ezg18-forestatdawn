@@ -21,11 +21,11 @@ private:
 public:
 	GLWindow(GLint windowWidth, GLint windowHeight);
 
-	int Initialize(bool adaptScreen);
+	bool Initialize(bool adaptScreen);
 	void SetViewport();
 
-	GLfloat GetBufferWidht();
-	GLfloat GetBufferHeight();
+	GLuint GetBufferWidht();
+	GLuint GetBufferHeight();
 	static int GetWidth() { return width; };
 	static int GetHeight() { return height; };
 

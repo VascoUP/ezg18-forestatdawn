@@ -1,16 +1,5 @@
 #include "Light.h"
 
-Light::Light(Transform* transform)
-{
-	this->transform = transform;
-
-	diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	diffuseIntensity = 0.5f;
-
-	specularColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	specularIntensity = 0.5f;
-}
-
 Light::Light(Transform * transform,
 	GLuint staticShadowWidth, GLuint staticShadowHeight,
 	GLuint dynamicShadowWidth, GLuint dynamicShadowHeight,
@@ -29,8 +18,6 @@ Light::Light(Transform * transform,
 	
 	m_staticSM = new ShadowMap();
 	m_staticSM->Init(staticShadowWidth, staticShadowHeight);
-	m_dynamicSM = new ShadowMap();
-	m_dynamicSM->Init(dynamicShadowWidth, dynamicShadowHeight);
 }
 
 Transform * Light::GetTransform() const
@@ -63,31 +50,29 @@ ShadowMap * Light::GetStaticShadowMap()
 	return m_staticSM;
 }
 
-ShadowMap * Light::GetDynamicShadowMap()
-{
-	return m_dynamicSM;
+bool Light::IsActive() const {
+	return isActive;
+}
+
+void Light::SetActive(bool active) {
+	isActive = active;
 }
 
 void Light::UseLight(GLuint diffuseColorLocation, GLuint diffuseFactorLocation, GLuint specularColorLocation, GLuint specularFactorLocation)
 {
+	if (!isActive) {
+		glUniform3f(diffuseColorLocation, 0, 0, 0);
+		glUniform3f(diffuseFactorLocation, 0, 0, 0);
+		glUniform3f(specularColorLocation, 0, 0, 0);
+		glUniform3f(specularFactorLocation, 0, 0, 0);
+		return;
+	}
 	glUniform3f(diffuseColorLocation, diffuseColor.r, diffuseColor.g, diffuseColor.b);
 	glUniform3f(diffuseFactorLocation, diffuseIntensity, diffuseIntensity, diffuseIntensity);
 	glUniform3f(specularColorLocation, specularColor.r, specularColor.g, specularColor.b);
 	glUniform3f(specularFactorLocation, specularIntensity, specularIntensity, specularIntensity);
 }
 
-
-DirectionalLight::DirectionalLight(Transform* transform)
-	: Light(transform)
-{
-	GLfloat zFar = 40.0f;
-	GLfloat zNear = 0.1f;
-
-	glm::vec3 dir = glm::vec3(transform->GetUp());
-	dir = glm::normalize(dir);
-	lightProj = glm::ortho(-zFar, zFar, -zFar, zFar, zNear, zFar) *
-		glm::lookAt(dir * zFar / 2.0f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-}
 
 DirectionalLight::DirectionalLight(
 	Transform* transform,
@@ -100,6 +85,9 @@ DirectionalLight::DirectionalLight(
 		dynamicShadowWidth, dynamicShadowHeight,
 		diffIntensity, diffRed, diffGreen, diffBlue, specIntensity, specRed, specGreen, specBlue)
 {
+	m_dynamicSM = new ShadowMap();
+	m_dynamicSM->Init(dynamicShadowWidth, dynamicShadowHeight);
+
 	GLfloat zFar = 100.0f;
 	GLfloat zNear = 0.1f;
 
@@ -107,6 +95,11 @@ DirectionalLight::DirectionalLight(
 	dir = glm::normalize(dir);
 	lightProj = glm::ortho(-zFar, zFar, -zFar, zFar, zNear, zFar) *
 		glm::lookAt(dir * zFar / 2.0f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+ShadowMap * DirectionalLight::GetDynamicShadowMap()
+{
+	return m_dynamicSM;
 }
 
 glm::vec3 GetDirection(glm::vec3 upVector) {
@@ -127,14 +120,6 @@ glm::mat4 DirectionalLight::CalculateLightTransform()
 	return lightProj;
 }
 
-
-PointLight::PointLight(Transform* transform)
-	: Light(transform)
-{
-	constant = 0;
-	linear = 0;
-	exponent = 0;
-}
 
 PointLight::PointLight(Transform* transform,
 	GLfloat near, GLfloat far,
@@ -210,13 +195,6 @@ std::vector<glm::mat4> PointLight::CalculateLightTransform()
 	return lightTransforms;
 }
 
-
-SpotLight::SpotLight(Transform* transform)
-	: PointLight(transform)
-{
-	edge = 0;
-	procEdge = 0;
-}
 
 SpotLight::SpotLight(Transform* transform,
 	GLfloat near, GLfloat far,

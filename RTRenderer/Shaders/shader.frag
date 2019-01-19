@@ -89,7 +89,7 @@ uniform vec3 u_IoRValues;
 uniform vec3 u_fresnelValues;
 
 float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex, vec3 fragToLight, float depth) {
-	float bias = depth * 0.05;
+	float bias = depth * 0.06;
 	float shadow = 0.0;
 	float samples = 3.0;
 	float offset = 0.1;

@@ -92,8 +92,8 @@ vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 
 
     //Sum up the specular light factoring
     outColor += intensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);
-
-    return (1.0 - shadowFactor) * clamp(outColor * vec4(matColor, 1.0), 0.0, 1.0);
+	
+    return vec4((1.0 - shadowFactor) * outColor.rgb, 1.0) * vec4(matColor, 1.0);
 }
  
 vec4 CalculateDirectionalLight(FragParams frag, vec3 matColor, float matShininess, DirectionalLight light) {
@@ -163,5 +163,5 @@ void main()
 	vec4 slsColor = CalculateSpotLights(frag, u_material.albedo, u_material.shininess, u_spotLights, u_spotLightsCount);
 	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0);
 	
-	frag_color = tColor * clamp( dlColor + plsColor + slsColor + aColor, 0.0, 1.0 );
+	frag_color = clamp( tColor * (dlColor + plsColor + slsColor + aColor), 0.0, 1.0 );
 }

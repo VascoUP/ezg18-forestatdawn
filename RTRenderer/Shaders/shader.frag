@@ -88,11 +88,8 @@ uniform float u_refractionFactor;
 uniform vec3 u_IoRValues;
 uniform vec3 u_fresnelValues;
 
-float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex) {
-	vec3 fragToLight = vert_pos - light.position;
-	float currentDepth = length(fragToLight);
-	
-	float bias = currentDepth * 0.05;
+float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex, vec3 fragToLight, float depth) {
+	float bias = depth * 0.05;
 	float shadow = 0.0;
 	float samples = 3.0;
 	float offset = 0.1;
@@ -104,17 +101,13 @@ float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex) {
 			{
 				float closestDepth = texture(u_omniSM[shadowMapIndex].static_shadowmap, fragToLight + vec3(x,y,z)).r;
 				closestDepth *= u_omniSM[shadowMapIndex].farPlane;
-				shadow += float(currentDepth - bias > closestDepth);				
+				shadow += float(depth - bias > closestDepth);				
 			}
 		}
 	}
 
 	shadow /= (samples * samples * samples);
-	return float(currentDepth - bias < u_omniSM[shadowMapIndex].farPlane) * shadow;
-	
-	//float closestDepth = texture(u_omniSM[shadowMapIndex].static_shadowmap, fragToLight).r;
-	//closestDepth *= u_omniSM[shadowMapIndex].farPlane; 
-	//return float(currentDepth - bias < u_omniSM[shadowMapIndex].farPlane && currentDepth - bias > closestDepth);
+	return float(depth - bias < u_omniSM[shadowMapIndex].farPlane) * shadow;
 }
 
 float CalculateDirectionalShadowFactor(DirectionalLight light) 
@@ -173,7 +166,7 @@ vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 
     //Sum up the specular light factoring
     outColor += intensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);
 
-    return clamp(vec4((1.0 - shadowFactor) * outColor.rgb, 1.0) * vec4(matColor, 1.0), 0.0, 1.0);
+    return vec4((1.0 - shadowFactor) * outColor.rgb, 1.0) * vec4(matColor, 1.0);
 }
  
 vec4 CalculateDirectionalLight(FragParams frag, vec3 matColor, float matShininess, DirectionalLight light) {
@@ -185,7 +178,8 @@ vec4 CalculatePointLight(FragParams frag, vec3 matColor, float matShininess, Poi
 	float dLightToFrag = length(lightToFrag);
 	vec3 nLightToFrag = normalize(lightToFrag);
 
-	float shadowFactor = CalculateOmniShadowFactor(light, shadowMapIndex);
+
+	float shadowFactor = CalculateOmniShadowFactor(light, shadowMapIndex, -lightToFrag, dLightToFrag);
 	vec4 plColor = CalculateLighting(frag, u_material.albedo, u_material.shininess, nLightToFrag, light.light, shadowFactor);
 
 	// Calculate attenuation based on distance
@@ -227,7 +221,7 @@ vec4 CalculateLigthing(FragParams frag) {
 	vec4 plsColor = CalculatePointLights(frag, u_material.albedo, u_material.shininess, u_pointLights, u_pointLightsCount);
 	vec4 slsColor = CalculateSpotLights(frag, u_material.albedo, u_material.shininess, u_spotLights, u_spotLightsCount);
 	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0);
-	return clamp( dlColor + plsColor + slsColor + aColor, 0.0, 1.0 );
+	return dlColor + plsColor + slsColor + aColor;
 }
 
 float FresnelApproximation(float iDotN, vec3 fresnelValues)
@@ -301,4 +295,6 @@ void main()
 	} else {
 		frag_color = tColor * lColor;
 	}
+
+	frag_color = clamp(frag_color, 0.0, 1.0);
 }

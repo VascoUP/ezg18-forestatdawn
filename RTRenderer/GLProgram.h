@@ -5,6 +5,7 @@
 #include "Transform.h"
 #include "GLRenderer.h"
 #include "SceneLoader.h"
+#include "ObjectController.h"
 
 class GLProgram
 {
@@ -18,7 +19,7 @@ protected:
 	GLRenderer* mRenderer;
 
 	bool mError = false;
-	
+
 	GLProgram(RenderMode mode);
 public:
 	static GLProgram* CreateGLProgramInstance(RenderMode mode);
@@ -40,7 +41,10 @@ public:
 };
 
 class GLRoamProgram : public GLProgram {
+private:
 	friend class GLProgram;
+
+	bool mPauseWasPressed = false;
 
 	GLRoamProgram();
 public:

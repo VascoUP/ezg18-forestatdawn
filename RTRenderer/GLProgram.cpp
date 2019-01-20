@@ -34,6 +34,7 @@ void GLCinematicProgram::Run()
 		Input::NewFrame();
 		// Get + Handle user input events
 		glfwPollEvents();
+		
 		// Update all objects
 		mRoot->Update();
 		// Render scene
@@ -83,8 +84,16 @@ void GLRoamProgram::Run()
 		// Get + Handle user input events
 		glfwPollEvents();
 
-		if (Input::IsKeyPress(GLFW_KEY_P))
-			updateObjects = !updateObjects;
+		{
+			bool isPressed = Input::IsKeyPress(GLFW_KEY_P);
+			if (!mPauseWasPressed && isPressed) {
+				mPauseWasPressed = true;
+				updateObjects = !updateObjects;
+			}
+			else if (mPauseWasPressed && !isPressed) {
+				mPauseWasPressed = false;
+			}
+		}
 
 		if (updateObjects)
 			mRoot->Update();
@@ -120,8 +129,8 @@ GLProgram::GLProgram(RenderMode mode) :
 	mInstance = this;
 
 	mWindow = new GLWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
-	mWindow->Initialize(false);
-
+	mWindow->Initialize(true);
+	
 	mRoot = new Transform();
 	mRenderer = new GLRenderer(mRoot);
 }

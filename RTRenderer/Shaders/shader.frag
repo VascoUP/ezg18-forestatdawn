@@ -147,23 +147,17 @@ float CalculateAttenuation(float dist, float falloffStart, float falloffEnd)
 vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 nLightToFrag, Light light, float shadowFactor) {
     vec4 outColor = vec4(0.0, 0.0, 0.0, 1.0);
 
-    //Intensity of the diffuse light. Saturate to keep within the 0-1 range.
-    float NdotL = dot( frag.frag_Normal, nLightToFrag );
-    float intensity = clamp( NdotL, 0.0, 1.0 );
+	// Diffuse
+    float NdotL = dot( nLightToFrag, frag.frag_Normal );
+    float intensity = max( NdotL, 0.0 );
 
-    // Calculate the diffuse light factoring in light color, power and the attenuation
     outColor += intensity * vec4(light.diffuseColor, 1.0f) * vec4(light.diffuseFactor, 1.0f);
 
-    //Calculate the half vector between the light vector and the view vector.
-    //This is typically slower than calculating the actual reflection vector
-    // due to the normalize function's reciprocal square root
+	// Specular 
     vec3 H = normalize( nLightToFrag + frag.frag_nvToCam );
-
-    //Intensity of the specular light
-    float NdotH = dot( frag.frag_Normal, H );
-    intensity = pow( clamp( NdotH, 0.0, 1.0 ), matShininess );
+    float NdotH = max( dot( H, frag.frag_Normal ), 0.0 );
+    intensity = pow( NdotH, matShininess );
 	
-    //Sum up the specular light factoring
     outColor += intensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);
 
     return vec4((1.0 - shadowFactor) * outColor.rgb, 1.0) * vec4(matColor, 1.0);

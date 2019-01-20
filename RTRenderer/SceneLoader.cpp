@@ -164,12 +164,12 @@ std::string SimulateJSONObject() {
 	nlohmann::json simulateDLight;
 	simulateDLight["diffintensity"] = 0.8f;
 	simulateDLight["specintensity"] = 0.8f;
-	simulateDLight["diffcolor"]["red"] = 1.0f;
-	simulateDLight["diffcolor"]["green"] = 0.8f;
-	simulateDLight["diffcolor"]["blue"] = 0.8f;
-	simulateDLight["speccolor"]["red"] = 0.8f;
-	simulateDLight["speccolor"]["green"] = 0.8f;
-	simulateDLight["speccolor"]["blue"] = 0.8f;
+	simulateDLight["diffcolor"]["red"] = 0.9f;
+	simulateDLight["diffcolor"]["green"] = 0.9f;
+	simulateDLight["diffcolor"]["blue"] = 1.0f;
+	simulateDLight["speccolor"]["red"] = 0.9f;
+	simulateDLight["speccolor"]["green"] = 0.9f;
+	simulateDLight["speccolor"]["blue"] = 1.0f;
 	simulateDLight["rotation"]["x"] = -0.5f;
 	simulateDLight["rotation"]["y"] = -0.5f;
 	simulateDLight["rotation"]["z"] = 0.0f;
@@ -177,12 +177,12 @@ std::string SimulateJSONObject() {
 	nlohmann::json simulatePLight0;
 	simulatePLight0["diffintensity"] = 0.6f;
 	simulatePLight0["specintensity"] = 0.6f;
-	simulatePLight0["diffcolor"]["red"] = 1.0f;
-	simulatePLight0["diffcolor"]["green"] = 0.8f;
-	simulatePLight0["diffcolor"]["blue"] = 0.8f;
-	simulatePLight0["speccolor"]["red"] = 1.0f;
-	simulatePLight0["speccolor"]["green"] = 0.7f;
-	simulatePLight0["speccolor"]["blue"] = 0.6f;
+	simulatePLight0["diffcolor"]["red"] = 0.9f;
+	simulatePLight0["diffcolor"]["green"] = 1.0f;
+	simulatePLight0["diffcolor"]["blue"] = 0.9f;
+	simulatePLight0["speccolor"]["red"] = 0.9f;
+	simulatePLight0["speccolor"]["green"] = 1.0f;
+	simulatePLight0["speccolor"]["blue"] = 0.9f;
 	simulatePLight0["translation"]["x"] = 8.0f;
 	simulatePLight0["translation"]["y"] = 0.5f;
 	simulatePLight0["translation"]["z"] = 0.0f;
@@ -193,11 +193,11 @@ std::string SimulateJSONObject() {
 	nlohmann::json simulatePLight1;
 	simulatePLight1["diffintensity"] = 0.6f;
 	simulatePLight1["specintensity"] = 0.6f;
-	simulatePLight1["diffcolor"]["red"] = 1.0f;
-	simulatePLight1["diffcolor"]["green"] = 0.8f;
-	simulatePLight1["diffcolor"]["blue"] = 0.8f;
-	simulatePLight1["speccolor"]["red"] = 1.0f;
-	simulatePLight1["speccolor"]["green"] = 0.8f;
+	simulatePLight1["diffcolor"]["red"] = 0.9f;
+	simulatePLight1["diffcolor"]["green"] = 1.0f;
+	simulatePLight1["diffcolor"]["blue"] = 0.9f;
+	simulatePLight1["speccolor"]["red"] = 0.8f;
+	simulatePLight1["speccolor"]["green"] = 1.0f;
 	simulatePLight1["speccolor"]["blue"] = 0.8f;
 	simulatePLight1["translation"]["x"] = -2.0f;
 	simulatePLight1["translation"]["y"] = 0.5f;
@@ -232,85 +232,85 @@ void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow, 
 	transform->Scale(0.5f);
 	transform->Translate(glm::vec3(0.0f, 10.0f, 0.0f));
 	transform->Rotate(-1.57f, 3.14f, 0.0f);
-	Material* mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
+	Material* mat = new Material(1.0f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 0));
 	transform->AddUpdatable(new HelicopterController(transform, 7.0f, 1.0f));
 
 	// -- Type 1 trees --
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(10.0f, 0.0f, 0.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(-1.0f, 0.0f, 5.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(2.0f, 0.0f, -3.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(2.0f, 0.0f, 10.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(5.0f, 0.0f, 5.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	// -- Type 2 trees --
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(0.0f, 0.0f, 2.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(3.0f, 0.0f, -1.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(-5.0f, 0.0f, 1.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(2.0f, 0.0f, -5.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(3.0f, 0.0f, 8.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(7.0f, 0.0f, -2.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(8.0f, 0.0f, 2.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	transform = new Transform(root);
 	transform->Translate(glm::vec3(6.0f, 0.0f, -5.0f));
-	mat = new Material(0.1f, 50, 1.0f, 1.0f, 1.0f);
+	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	// Moutain
@@ -319,7 +319,7 @@ void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow, 
 	transform->Translate(glm::vec3(10.0f, -1.0f, -10.0f));
 	Texture* tex = new Texture("Textures/mountainTex.png");
 	tex->LoadTexture();
-	mat = new Material(0.1f, 511, 1.0f, 1.0f, 1.0f, tex);
+	mat = new Material(1.0f, 100, 1.0f, 1.0f, 1.0f, tex);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 3));
 
 	{
@@ -329,7 +329,7 @@ void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow, 
 		renderer->SetRenderable(terrain);
 		meshRenderer->AddObjectRenderer(renderer);
 		transform = new Transform(root);
-		mat = new Material(0.2f, 50, 1.0f, 1.0f, 1.0f);
+		mat = new Material(0.2f, 2.0f, 1.0f, 1.0f, 1.0f);
 		meshRenderer->AddMeshRenderer(new GLObject(transform, mat, terrain->GetIndex()));
 	}
 

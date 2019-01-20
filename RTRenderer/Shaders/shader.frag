@@ -144,7 +144,7 @@ float CalculateAttenuation(float dist, float falloffStart, float falloffEnd)
     return clamp(attenuation, 0.0, 1.0);
 }
 
-vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 nLightToFrag, Light light, float shadowFactor) {
+vec4 CalculateLighting(FragParams frag, vec3 matColor, float matSpecIntensity, float matShininess, vec3 nLightToFrag, Light light, float shadowFactor) {
     vec4 outColor = vec4(0.0, 0.0, 0.0, 1.0);
 
 	// Diffuse
@@ -158,23 +158,23 @@ vec4 CalculateLighting(FragParams frag, vec3 matColor, float matShininess, vec3 
     float NdotH = max( dot( H, frag.frag_Normal ), 0.0 );
     intensity = pow( NdotH, matShininess );
 	
-    outColor += intensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);
+    outColor += intensity * matSpecIntensity * vec4(light.specularColor, 1.0) * vec4(light.specularFactor, 1.0);
 
     return vec4((1.0 - shadowFactor) * outColor.rgb, 1.0) * vec4(matColor, 1.0);
 }
  
-vec4 CalculateDirectionalLight(FragParams frag, vec3 matColor, float matShininess, DirectionalLight light) {
-	return CalculateLighting(frag, u_material.albedo, u_material.shininess, -u_directionalLight.direction, u_directionalLight.light, CalculateDirectionalShadowFactor(light));
+vec4 CalculateDirectionalLight(FragParams frag, DirectionalLight light) {
+	return CalculateLighting(frag, u_material.albedo, u_material.specularIntensity, u_material.shininess, -u_directionalLight.direction, u_directionalLight.light, CalculateDirectionalShadowFactor(light));
 }
 
-vec4 CalculatePointLight(FragParams frag, vec3 matColor, float matShininess, PointLight light, int shadowMapIndex) {
+vec4 CalculatePointLight(FragParams frag, PointLight light, int shadowMapIndex) {
 	vec3 lightToFrag = light.position - frag.frag_Position;
 	float dLightToFrag = length(lightToFrag);
 	vec3 nLightToFrag = normalize(lightToFrag);
 
 
 	float shadowFactor = CalculateOmniShadowFactor(light, shadowMapIndex, -lightToFrag, dLightToFrag);
-	vec4 plColor = CalculateLighting(frag, u_material.albedo, u_material.shininess, nLightToFrag, light.light, shadowFactor);
+	vec4 plColor = CalculateLighting(frag, u_material.albedo, u_material.specularIntensity, u_material.shininess, nLightToFrag, light.light, shadowFactor);
 
 	// Calculate attenuation based on distance
 	float attenuation = light.exponent * dLightToFrag * dLightToFrag + light.linear * dLightToFrag + light.constant;
@@ -183,27 +183,27 @@ vec4 CalculatePointLight(FragParams frag, vec3 matColor, float matShininess, Poi
 }
 
 
-vec4 CalculatePointLights(FragParams frag, vec3 matColor, float matShininess, PointLight lights[MAX_POINT_LIGHTS], int pointLightCount) {
+vec4 CalculatePointLights(FragParams frag, PointLight lights[MAX_POINT_LIGHTS], int pointLightCount) {
 	vec4 plsColor = vec4(0.0, 0.0, 0.0, 1.0);
 	for(int i = 0; i < pointLightCount; i++) {
-		plsColor += CalculatePointLight(frag, matColor, matShininess, lights[i], i);
+		plsColor += CalculatePointLight(frag, lights[i], i);
 	}
 
 	return plsColor;
 }
 
-vec4 CalculateSpotLight(FragParams frag, vec3 matColor, float matShininess, float slFactor, SpotLight light, int shadowMapIndex) {
-	vec4 color = CalculatePointLight(frag, matColor, matShininess, light.light, shadowMapIndex);
+vec4 CalculateSpotLight(FragParams frag, float slFactor, SpotLight light, int shadowMapIndex) {
+	vec4 color = CalculatePointLight(frag, light.light, shadowMapIndex);
 	return color * (1.0 - (1.0 - slFactor) * (1.0 / (1.0 - light.edge)));
 }
 
-vec4 CalculateSpotLights(FragParams frag, vec3 matColor, float matShininess, SpotLight lights[MAX_POINT_LIGHTS], int spotLightCount) {
+vec4 CalculateSpotLights(FragParams frag, SpotLight lights[MAX_POINT_LIGHTS], int spotLightCount) {
 	vec4 plsColor = vec4(0.0, 0.0, 0.0, 1.0);
 	for(int i = 0; i < spotLightCount; i++) {
 		vec3 rayDirection = normalize(frag.frag_Position - lights[i].light.position);
 		float slFactor = dot(rayDirection, lights[i].direction);
 		if(slFactor > lights[i].edge) {
-			plsColor += CalculateSpotLight(frag, matColor, matShininess, slFactor, lights[i], i + u_pointLightsCount);
+			plsColor += CalculateSpotLight(frag, slFactor, lights[i], i + u_pointLightsCount);
 		}
 	}
 
@@ -211,9 +211,9 @@ vec4 CalculateSpotLights(FragParams frag, vec3 matColor, float matShininess, Spo
 }
 
 vec4 CalculateLigthing(FragParams frag) {
-	vec4 dlColor = CalculateDirectionalLight(frag, u_material.albedo, u_material.shininess, u_directionalLight);
-	vec4 plsColor = CalculatePointLights(frag, u_material.albedo, u_material.shininess, u_pointLights, u_pointLightsCount);
-	vec4 slsColor = CalculateSpotLights(frag, u_material.albedo, u_material.shininess, u_spotLights, u_spotLightsCount);
+	vec4 dlColor = CalculateDirectionalLight(frag, u_directionalLight);
+	vec4 plsColor = CalculatePointLights(frag, u_pointLights, u_pointLightsCount);
+	vec4 slsColor = CalculateSpotLights(frag, u_spotLights, u_spotLightsCount);
 	vec4 aColor = vec4(u_ambientFactor, u_ambientFactor, u_ambientFactor, 1.0);
 	return dlColor + plsColor + slsColor + aColor;
 }

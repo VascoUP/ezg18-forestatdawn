@@ -89,7 +89,6 @@ uniform vec3 u_IoRValues;
 uniform vec3 u_fresnelValues;
 
 float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex, vec3 fragToLight, float depth) {
-	float bias = depth * 0.06;
 	float shadow = 0.0;
 	float samples = 3.0;
 	float offset = 0.1;
@@ -101,13 +100,13 @@ float CalculateOmniShadowFactor(PointLight light, int shadowMapIndex, vec3 fragT
 			{
 				float closestDepth = texture(u_omniSM[shadowMapIndex].static_shadowmap, fragToLight + vec3(x,y,z)).r;
 				closestDepth *= u_omniSM[shadowMapIndex].farPlane;
-				shadow += float(depth - bias > closestDepth);				
+				shadow += float(depth > closestDepth);				
 			}
 		}
 	}
 
 	shadow /= (samples * samples * samples);
-	return float(depth - bias < u_omniSM[shadowMapIndex].farPlane) * shadow;
+	return float(depth < u_omniSM[shadowMapIndex].farPlane) * shadow;
 }
 
 float CalculateDirectionalShadowFactor(DirectionalLight light) 
@@ -121,7 +120,6 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 	vec3 normal = normalize(vert_normal);
 	vec3 lightDir = normalize(light.direction);
 
-	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
 	float shadow = 0.0;
 
 	vec2 s_texelSize = 1.0 / textureSize(u_directionalSM.static_shadowmap, 0);
@@ -130,7 +128,7 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 		for(int y = -1; y < 1; y++) {
 			float s_pcfDepth = texture(u_directionalSM.static_shadowmap, projCoords.xy + vec2(x, y) * s_texelSize).x;
 			float d_pcfDepth = texture(u_directionalSM.dynamic_shadowmap, projCoords.xy + vec2(x, y) * d_texelSize).x;
-			shadow += max(float(currentDepth - bias > s_pcfDepth), float(currentDepth - bias > d_pcfDepth));
+			shadow += max(float(currentDepth > s_pcfDepth), float(currentDepth > d_pcfDepth));
 		}
 	}
 	shadow /= 9.0;

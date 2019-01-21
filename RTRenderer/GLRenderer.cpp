@@ -336,6 +336,9 @@ void GLRenderer::DirectionalSMPass(RenderFilter filter)
 		return;
 	}
 
+	// Render back faces to avoid incorrect self-shadowing
+	glCullFace(GL_BACK);
+
 	// Use the directional light shadow map
 	m_directionalSMShader->UseShader();
 
@@ -369,6 +372,7 @@ void GLRenderer::DirectionalSMPass(RenderFilter filter)
 
 	// Re-bind framebuffer to the default one
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glCullFace(GL_FRONT);
 }
 
 void GLRenderer::OmnidirectionalSMPass(PointLight* light, RenderFilter filter)
@@ -377,6 +381,9 @@ void GLRenderer::OmnidirectionalSMPass(PointLight* light, RenderFilter filter)
 		printf("Invalid render filter");
 		return;
 	}
+
+	// Render back faces to avoid incorrect self-shadowing
+	glCullFace(GL_BACK);
 
 	// Use the directional light shadow map
 	m_omnidirectionalSMShader->UseShader();
@@ -407,6 +414,7 @@ void GLRenderer::OmnidirectionalSMPass(PointLight* light, RenderFilter filter)
 
 	// Re-bind framebuffer to the default one
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glCullFace(GL_FRONT);
 }
 
 void GLRenderer::CubeMapPass(Transform * transport, CubeMapRenderShader* shader, CubeMap * cubemap)

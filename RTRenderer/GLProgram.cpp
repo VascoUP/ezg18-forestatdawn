@@ -22,6 +22,8 @@ void GLCinematicProgram::Run()
 		return;
 	}
 
+	printf("Triangles:%d", VerticesCounter::GetNumberTriangles());
+
 	mRoot->SetUp();
 
 	mRenderer->BakeStage(mWindow);
@@ -67,6 +69,8 @@ void GLRoamProgram::Run()
 	if (mError) {
 		return;
 	}
+
+	printf("Triangles:%d", VerticesCounter::GetNumberTriangles());
 
 	bool updateObjects = true;
 
@@ -129,7 +133,7 @@ GLProgram::GLProgram(RenderMode mode) :
 	mInstance = this;
 
 	mWindow = new GLWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
-	mWindow->Initialize(true);
+	mWindow->Initialize(false);
 	
 	mRoot = new Transform();
 	mRenderer = new GLRenderer(mRoot);

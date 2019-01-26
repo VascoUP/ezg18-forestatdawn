@@ -15,6 +15,19 @@ struct MeshInfo {
 	unsigned int numOfIndices;
 };
 
+class Mesh;
+
+class VerticesCounter
+{
+private:
+	friend class Mesh;
+
+	static int nNumTriangles;
+public:
+	static int GetNumberTriangles();
+	static void ReplicatedMesh(Mesh* mesh);
+};
+
 //! This class holds the information required to draw a mesh onto a scene
 class Mesh : public IRenderable 
 {
@@ -27,6 +40,8 @@ private:
 	GLuint EBO;
 	//! Number of indices
 	GLsizei indexCount;
+	// ! Number of vertices
+	unsigned int triangleCounter;
 	//! Shader to be applied to this model
 	Texture* texture;
 
@@ -35,7 +50,9 @@ public:
 	//! Constructor
 	Mesh(MeshInfo* info);
 
-	Texture* GetTexture();
+	Texture* GetTexture() const;
+
+	GLsizei GetTriangleCounter() const;
 
 	void SetTexture(Texture* tex);
 

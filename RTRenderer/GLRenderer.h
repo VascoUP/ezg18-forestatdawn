@@ -41,6 +41,7 @@ protected:
 	std::vector<GLObject*> m_objects;
 public:
 	virtual void Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr) = 0;
+	virtual void IncrementVertices() = 0;
 
 	void AddMeshRenderer(GLObject* meshRenderer);
 	void SetIndex(size_t index) { m_renderable->SetIndex(index); }
@@ -55,6 +56,7 @@ class GLModelRenderer
 public:
 	void SetRenderable(Model* renderable);
 	void Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr);
+	void IncrementVertices() override;
 };
 
 class GLMeshRenderer
@@ -63,6 +65,7 @@ class GLMeshRenderer
 public:
 	void SetRenderable(Mesh* renderable);
 	void Render(RenderFilter filter, GLuint uniformModel, LightedShader* shader = nullptr);
+	void IncrementVertices() override;
 };
 
 class GLRenderer;

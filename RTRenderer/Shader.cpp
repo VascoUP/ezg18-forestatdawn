@@ -262,6 +262,11 @@ DefaultShader::DefaultShader()
 	uniformFresnelValues = 0;
 }
 
+GLuint DefaultShader::GetWorldReflection() const
+{
+	return uniformWorldReflection;
+}
+
 void DefaultShader::GetShaderUniforms()
 {
 	LightedShader::GetShaderUniforms();
@@ -408,6 +413,7 @@ void DirectionalShadowMapShader::GetShaderUniforms()
 {
 	uniformModel = GetUniformLocation("u_modelMatrix");
 	uniformDirectionalLightTransform = GetUniformLocation("u_directionalLightTransform");
+	uniformTexture = GetUniformLocation("u_texture");
 }
 
 GLuint DirectionalShadowMapShader::GetModelLocation()
@@ -423,6 +429,11 @@ void DirectionalShadowMapShader::SetModel(glm::mat4 * mMatrix)
 void DirectionalShadowMapShader::SetDirectionalLightTransform(glm::mat4 * lTransform)
 {
 	glUniformMatrix4fv(uniformDirectionalLightTransform, 1, GL_FALSE, glm::value_ptr(*lTransform));
+}
+
+void DirectionalShadowMapShader::SetTexture(GLuint textureUnit)
+{
+	glUniform1i(uniformTexture, textureUnit);
 }
 
 

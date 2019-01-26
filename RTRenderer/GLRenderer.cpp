@@ -52,6 +52,7 @@ GLObject::~GLObject()
 void GLObjectRenderer::AddMeshRenderer(GLObject * meshRenderer)
 {
 	m_objects.push_back(meshRenderer);
+	IncrementVertices();
 }
 
 void GLObjectRenderer::Clear()
@@ -101,11 +102,11 @@ void GLModelRenderer::Render(RenderFilter filter, GLuint uniformModel, LightedSh
 
 	// -- Draw other meshs --
 	while(mesh != nullptr) {
-		Mesh* mesh = model->GetMeshByIndex(++i);
+		mesh = model->GetMeshByIndex(++i);
 		if (mesh == nullptr)
 			return;
 
-		Texture* tex = model->GetTextureByMeshIndex(i);
+		tex = model->GetTextureByMeshIndex(i);
 		if (tex != nullptr)
 			tex->UseTexture();
 
@@ -115,6 +116,17 @@ void GLModelRenderer::Render(RenderFilter filter, GLuint uniformModel, LightedSh
 	}
 }
 
+void GLModelRenderer::IncrementVertices()
+{
+	Model* model = (Model*)m_renderable;
+	for(size_t i = 0; ; i++)
+	{
+		Mesh* m = model->GetMeshByIndex(i);
+		if (m == nullptr)
+			break;
+		VerticesCounter::ReplicatedMesh(m);
+	}
+}
 
 
 void GLMeshRenderer::SetRenderable(Mesh * renderable)
@@ -134,12 +146,23 @@ void GLMeshRenderer::Render(RenderFilter filter, GLuint uniformModel, LightedSha
 	}
 }
 
+void GLMeshRenderer::IncrementVertices()
+{
+	VerticesCounter::ReplicatedMesh((Mesh*)m_renderable);
+}
 
-GLCubeMapRenderer::GLCubeMapRenderer()
+
+GLCubeMapRenderer::GLCubeMapRenderer(): 
+	m_refractModel(nullptr), 
+	m_reflectModel(nullptr), 
+	m_refractTransform(nullptr),                 
+	m_reflectTransform(nullptr),
+	m_refract(nullptr),                                    
+	m_reflect(nullptr)
 {
 	m_cubemapShader = new CubeMapRenderShader();
-	m_cubemapShader->CreateFromFiles("Shaders/envReflection.vert", "Shaders/envReflection.frag", "Shaders/envReflection.geom");
-
+	m_cubemapShader->CreateFromFiles("Shaders/envReflection.vert", "Shaders/envReflection.frag",
+	                                 "Shaders/envReflection.geom");
 }
 
 void GLCubeMapRenderer::Initialize(Transform* transform) {
@@ -362,6 +385,7 @@ void GLRenderer::DirectionalSMPass(RenderFilter filter)
 	// Set uniforms
 	GLuint uniformModel = m_directionalSMShader->GetModelLocation();
 	m_directionalSMShader->SetDirectionalLightTransform(&m_directionalLight->CalculateLightTransform());
+	m_directionalSMShader->SetTexture(1);
 	
 	ShaderCompiler::ValidateProgram(m_directionalSMShader->GetShaderID());
 
@@ -494,7 +518,7 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	m_shader->SetSkybox(textureUnit);
 
 	textureUnit++;
-	size_t worldReflectionUnit = textureUnit;
+	const size_t worldReflectionUnit = textureUnit;
 	m_shader->SetWorldReflection(worldReflectionUnit);
 
 	textureUnit++;
@@ -503,13 +527,13 @@ void GLRenderer::RenderPass(RenderFilter filter)
 	m_shader->SetDirectionalLightTransform(&m_directionalLight->CalculateLightTransform());
 	m_shader->SetDirectionalLight(m_directionalLight);
 
-	GLuint uniformModel = m_shader->GetModelLocation();
+	const GLuint uniformModel = m_shader->GetModelLocation();
 
 	ShaderCompiler::ValidateProgram(m_shader->GetShaderID());
 	
 	// Render scene
 	RenderScene(filter, uniformModel, m_shader);
-	
+
 	m_cubemapRenderer->Render(m_shader, uniformModel, worldReflectionUnit);
 }
 

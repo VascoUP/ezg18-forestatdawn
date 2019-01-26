@@ -21,7 +21,7 @@ private:
 public:
 	GLWindow(GLint windowWidth, GLint windowHeight);
 
-	bool Initialize(bool adaptScreen);
+	bool Initialize(bool fullScreen);
 	void SetViewport();
 
 	GLuint GetBufferWidht();

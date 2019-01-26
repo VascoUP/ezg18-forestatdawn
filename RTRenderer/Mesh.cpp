@@ -1,20 +1,42 @@
 #include "Mesh.h"
 
-Mesh::Mesh(MeshInfo * info)
-	: IRenderable()
-{
-	meshInfo = info;
+const int InfoInVertex = 8;
 
-	VAO = 0;
-	VBO = 0;
-	EBO = 0;
-	indexCount = 0;
-	texture = nullptr;
+int VerticesCounter::nNumTriangles = 0;
+
+int VerticesCounter::GetNumberTriangles()
+{
+	return nNumTriangles;
 }
 
-Texture * Mesh::GetTexture()
+void VerticesCounter::ReplicatedMesh(Mesh* mesh)
+{
+	nNumTriangles += mesh->GetTriangleCounter();
+}
+
+
+
+Mesh::Mesh(MeshInfo * info) :
+	IRenderable(),
+	VAO(0),
+	VBO(0),
+	EBO(0),
+	indexCount(0),
+	triangleCounter(0),
+	texture(nullptr),
+	meshInfo(info)
+{
+	
+}
+
+Texture * Mesh::GetTexture() const
 {
 	return texture;
+}
+
+GLsizei Mesh::GetTriangleCounter() const
+{
+	return triangleCounter;
 }
 
 void Mesh::SetTexture(Texture * tex)
@@ -24,6 +46,7 @@ void Mesh::SetTexture(Texture * tex)
 
 void Mesh::Load() {
 	indexCount = meshInfo->numOfIndices;
+	triangleCounter = meshInfo->numOfIndices / 3;
 
 	// Bind mesh values
 	glGenVertexArrays(1, &VAO);
@@ -37,11 +60,11 @@ void Mesh::Load() {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(meshInfo->vertices[0]) * meshInfo->numOfVertices, meshInfo->vertices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(meshInfo->vertices[0]) * 8, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(meshInfo->vertices[0]) * InfoInVertex, 0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(meshInfo->vertices[0]) * 8, (void*)(sizeof(meshInfo->vertices[0]) * 3));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(meshInfo->vertices[0]) * InfoInVertex, (void*)(sizeof(meshInfo->vertices[0]) * 3));
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(meshInfo->vertices[0]) * 8, (void*)(sizeof(meshInfo->vertices[0]) * 5));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(meshInfo->vertices[0]) * InfoInVertex, (void*)(sizeof(meshInfo->vertices[0]) * 5));
 	glEnableVertexAttribArray(2);
 
 	// Unbind this mesh's values

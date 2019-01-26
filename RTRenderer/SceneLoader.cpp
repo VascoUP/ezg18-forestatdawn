@@ -257,20 +257,20 @@ void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow, 
 	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
-	transform = new Transform(root);
-	transform->Translate(glm::vec3(2.0f, 0.0f, 10.0f));
-	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
-	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
+	//transform = new Transform(root);
+	//transform->Translate(glm::vec3(2.0f, 0.0f, 10.0f));
+	//mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
+	//meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
-	transform = new Transform(root);
-	transform->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
-	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
-	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
+	//transform = new Transform(root);
+	//transform->Translate(glm::vec3(-5.0f, 0.0f, -5.0f));
+	//mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
+	//meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
-	transform = new Transform(root);
-	transform->Translate(glm::vec3(5.0f, 0.0f, 5.0f));
-	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
-	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
+	//transform = new Transform(root);
+	//transform->Translate(glm::vec3(5.0f, 0.0f, 5.0f));
+	//mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
+	//meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 1));
 
 	// -- Type 2 trees --
 	transform = new Transform(root);
@@ -298,20 +298,20 @@ void BuildScene(GLRenderer * meshRenderer, Transform* root, GLWindow* glWindow, 
 	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
 	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
-	transform = new Transform(root);
-	transform->Translate(glm::vec3(7.0f, 0.0f, -2.0f));
-	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
-	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
+	//transform = new Transform(root);
+	//transform->Translate(glm::vec3(7.0f, 0.0f, -2.0f));
+	//mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
+	//meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
-	transform = new Transform(root);
-	transform->Translate(glm::vec3(8.0f, 0.0f, 2.0f));
-	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
-	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
+	//transform = new Transform(root);
+	//transform->Translate(glm::vec3(8.0f, 0.0f, 2.0f));
+	//mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
+	//meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
-	transform = new Transform(root);
-	transform->Translate(glm::vec3(6.0f, 0.0f, -5.0f));
-	mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
-	meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
+	//transform = new Transform(root);
+	//transform->Translate(glm::vec3(6.0f, 0.0f, -5.0f));
+	//mat = new Material(0.8f, 50, 1.0f, 1.0f, 1.0f);
+	//meshRenderer->AddMeshRenderer(new GLObject(transform, mat, 2));
 
 	// Moutain
 	transform = new Transform(root);

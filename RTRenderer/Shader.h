@@ -175,6 +175,8 @@ private:
 
 public:
 	DefaultShader();
+
+	GLuint GetWorldReflection() const;
 	
 	void SetProjectionMatrix(glm::mat4 * pMatrix);
 	void SetViewMatrix(glm::mat4 * vMatrix);
@@ -214,6 +216,7 @@ class DirectionalShadowMapShader :
 private:
 	GLuint uniformModel;
 	GLuint uniformDirectionalLightTransform;
+	GLuint uniformTexture;
 public:
 	DirectionalShadowMapShader();
 
@@ -221,6 +224,7 @@ public:
 
 	void SetModel(glm::mat4* mMatrix);
 	void SetDirectionalLightTransform(glm::mat4* lTransform);
+	void SetTexture(GLuint textureUnit);
 
 protected:
 	void GetShaderUniforms();

@@ -428,6 +428,7 @@ void GLRenderer::OmnidirectionalSMPass(PointLight* light, RenderFilter filter)
 	m_omnidirectionalSMShader->SetLightMatrices(light->CalculateLightTransform());
 	m_omnidirectionalSMShader->SetLightPosition(&light->GetTransform()->GetPosition());
 	m_omnidirectionalSMShader->SetFarPlane(light->GetFarPlane());
+	m_omnidirectionalSMShader->SetTexture(1);
 
 	ShaderCompiler::ValidateProgram(m_omnidirectionalSMShader->GetShaderID());
 
@@ -453,7 +454,7 @@ void GLRenderer::CubeMapPass(Transform * transport, CubeMapRenderShader* shader,
 	cubemap->Write();
 
 	// Clear buffer
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Set uniforms

@@ -10,4 +10,5 @@ out vec2 vert_TextCoords;
 
 void main() {
 	gl_Position = u_directionalLightTransform * u_modelMatrix * vec4(vertPos, 1.0);
+	vert_TextCoords = vertTexCoords;
 }

@@ -117,9 +117,6 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 
 	float currentDepth = projCoords.z;
 
-	vec3 normal = normalize(vert_normal);
-	vec3 lightDir = normalize(light.direction);
-
 	float shadow = 0.0;
 
 	vec2 s_texelSize = 1.0 / textureSize(u_directionalSM.static_shadowmap, 0);
@@ -132,7 +129,7 @@ float CalculateDirectionalShadowFactor(DirectionalLight light)
 		}
 	}
 	shadow /= 9.0;
-
+	
 	return float(projCoords.z < 1.0) * shadow;
 }
 
@@ -237,26 +234,20 @@ vec4 CalculateRefraction(FragParams frag) {
 	// -- Refraction color --
 	vec3 refractColor;
 	// Red
-	vec3 refractTex = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.x)).rgb;
-	if(equal(refractTex, vec3(0.0, 0.0, 0.0)) == bvec3(1, 1, 1)) {
-		refractColor.r = texture(u_skybox, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.x)).r;
-	} else {
-		refractColor.r = refractTex.r;
-	}
+	vec4 refractTex = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.x));
+	refractColor.r = 
+		refractTex.r * refractTex.a +
+		texture(u_skybox, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.x)).r * (1.0 - refractTex.a);
 	// Green
-	refractTex = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.y)).rgb;
-	if(equal(refractTex, vec3(0.0, 0.0, 0.0)) == bvec3(1, 1, 1)) {
-		refractColor.g = texture(u_skybox, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.y)).g;
-	} else {
-		refractColor.g = refractTex.g;
-	}
+	refractTex = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.y));
+	refractColor.g = 
+		refractTex.g * refractTex.a +
+		texture(u_skybox, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.y)).g * (1.0 - refractTex.a);
 	// Blue
-	refractTex = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.z)).rgb;
-	if(equal(refractTex, vec3(0.0, 0.0, 0.0)) == bvec3(1, 1, 1)) {
-		refractColor.b = texture(u_skybox, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.z)).b;
-	} else {
-		refractColor.b = refractTex.b;
-	}
+	refractTex = texture(u_worldReflection, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.z));
+	refractColor.b = 
+		refractTex.b * refractTex.a +
+		texture(u_skybox, refract(-frag.frag_nvToCam, frag.frag_Normal, u_IoRValues.z)).b * (1.0 - refractTex.a);
 	return vec4(refractColor, 1.0);
 }
 

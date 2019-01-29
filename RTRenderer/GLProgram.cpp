@@ -133,7 +133,7 @@ GLProgram::GLProgram(RenderMode mode) :
 	mInstance = this;
 
 	mWindow = new GLWindow(SCREEN_WIDTH, SCREEN_HEIGHT);
-	mWindow->Initialize(false);
+	mWindow->Initialize(true);
 	
 	mRoot = new Transform();
 	mRenderer = new GLRenderer(mRoot);

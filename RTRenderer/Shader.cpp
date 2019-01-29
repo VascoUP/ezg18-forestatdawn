@@ -456,6 +456,8 @@ void OmnidirectionalShadowMapShader::GetShaderUniforms() {
 		snprintf(locBuff, sizeof(locBuff), "u_viewProjectionMatrices[%d]", i);
 		uniformLightMatrices[i] = GetUniformLocation(locBuff);
 	}
+
+	uniformTexture = GetUniformLocation("u_texture");
 }
 
 GLuint OmnidirectionalShadowMapShader::GetModelLocation()
@@ -482,6 +484,9 @@ void OmnidirectionalShadowMapShader::SetLightMatrices(std::vector<glm::mat4> lig
 	}
 }
 
+void OmnidirectionalShadowMapShader::SetTexture(GLuint unit) {
+	glUniform1i(uniformTexture, unit);
+}
 
 SkyBoxShader::SkyBoxShader() :
 	StandardShader()

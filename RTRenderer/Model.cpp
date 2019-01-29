@@ -99,31 +99,11 @@ void Model::LoadMaterials(const aiScene * scene)
 				}
 			}
 		}
-		// Todo: Do normal maps
-		/*else if (material->GetTextureCount(aiTextureType_NORMALS)) {
-			aiString path;
-			if (material->GetTexture(aiTextureType_NORMALS, 0, &path) == AI_SUCCESS)
-			{
-				int idx = std::string(path.data).rfind("\\");
-				std::string filename = std::string(path.data).substr(idx + 1);
 
-				std::string texPath = std::string("Textures/") + filename;
-
-				textureList[i] = new Texture(texPath.c_str());
-
-				if (!textureList[i]->LoadTexture())
-				{
-					printf("Failed to load texture at: %s\n", &texPath[0]);
-					delete textureList[i];
-					textureList[i] = nullptr;
-				}
-			}
-		}*/
-
-		if (!textureList[i])
-		{
-			textureList[i] = new Texture("Textures/plain.png");
-			textureList[i]->LoadTexture();
+		if (!textureList[i]) {
+			Texture* tex = new Texture("Textures/transparent.png");
+			tex->LoadTexture();
+			textureList[i] = tex;
 		}
 	}
 }

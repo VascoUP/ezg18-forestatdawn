@@ -238,6 +238,7 @@ private:
 	GLuint uniformLightMatrices[6];
 	GLuint uniformLightPos;
 	GLuint uniformFarPlane;
+	GLuint uniformTexture;
 
 public:
 	OmnidirectionalShadowMapShader();
@@ -248,6 +249,7 @@ public:
 	void SetLightPosition(glm::vec3* lPos);
 	void SetFarPlane(GLfloat far);
 	void SetLightMatrices(std::vector<glm::mat4> lightMatrices);
+	void SetTexture(GLuint unit);
 
 protected:
 	void GetShaderUniforms();
